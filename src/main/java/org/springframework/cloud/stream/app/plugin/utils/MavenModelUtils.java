@@ -27,7 +27,7 @@ public class MavenModelUtils {
 
     public static Model populateModel(String artifactId, String groupId, String version) {
         Model model = new Model();
-        model.setGroupId("org.springframework.cloud.stream.app");
+        model.setGroupId(groupId);
         model.setArtifactId(artifactId);
         model.setPackaging("pom");
         model.setVersion(version);
