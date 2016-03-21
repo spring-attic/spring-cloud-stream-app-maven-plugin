@@ -75,16 +75,23 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        final File genProjecthome = new File(generatedProjectHome);
         final InitializrDelegate initializrDelegate = new InitializrDelegate();
+
+        File genProjecthome = new File(generatedProjectHome);
 
         initializrDelegate.prepareProjectGenerator();
         try {
             for (Map.Entry<String, GeneratableApp> entry : generatedApps.entrySet()) {
+
+                GeneratableApp value = entry.getValue();
+
+                if (value.getGeneratedProjectHome() != null) {
+                    genProjecthome = new File(value.getGeneratedProjectHome());
+                }
+
                 Path path = Paths.get(generatedProjectHome, entry.getKey());
                 initialCleanup(path);
 
-                GeneratableApp value = entry.getValue();
                 List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies = value.getDependencies();
 
                 String[] artifactNames = artifactNames(dependencies);
@@ -118,6 +125,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     getLog().error("Error during plugin execution", e);
                     throw new IllegalStateException(e);
                 }
+                MavenModelUtils.addModuleInfoToContainerPom(genProjecthome);
             }
             MavenModelUtils.addModuleInfoToContainerPom(genProjecthome);
         }

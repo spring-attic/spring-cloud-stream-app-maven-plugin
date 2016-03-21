@@ -12,6 +12,7 @@ public class GeneratableApp {
     String groupId;
     String description;
     String packageName;
+    String generatedProjectHome;
 
     public List<Dependency> getDependencies() {
         return dependencies;
@@ -41,7 +42,8 @@ public class GeneratableApp {
         return packageName;
     }
 
-    public void setPackageName(String packageName) {
+    public void setPackageName(String packageName)
+    {
         this.packageName = packageName;
     }
 
@@ -53,5 +55,13 @@ public class GeneratableApp {
                 ", description='" + description + '\'' +
                 ", packageName='" + packageName + '\'' +
                 '}';
+    }
+
+    public void setGeneratedProjectHome(String generatedProjectHome) {
+        this.generatedProjectHome = generatedProjectHome;
+    }
+
+    public String getGeneratedProjectHome() {
+        return generatedProjectHome;
     }
 }
