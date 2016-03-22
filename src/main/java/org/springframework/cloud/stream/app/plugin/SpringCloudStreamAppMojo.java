@@ -89,8 +89,6 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                         StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
                                 new File(projectGenerator.getTmpdir());
 
-                System.out.println("WOHOO: " + genProjectHome);
-
                 Path path = Paths.get(genProjectHome.toString(), entry.getKey());
                 initialCleanup(path);
 
