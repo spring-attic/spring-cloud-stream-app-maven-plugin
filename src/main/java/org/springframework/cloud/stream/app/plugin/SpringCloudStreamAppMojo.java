@@ -81,17 +81,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
         initializrDelegate.prepareProjectGenerator();
         try {
             for (Map.Entry<String, GeneratableApp> entry : generatedApps.entrySet()) {
-
                 GeneratableApp value = entry.getValue();
-
-                File genProjectHome = StringUtils.isNotEmpty(generatedProjectHome) ?
-                        new File(generatedProjectHome) :
-                        StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
-                                new File(projectGenerator.getTmpdir());
-
-                Path path = Paths.get(genProjectHome.toString(), entry.getKey());
-                initialCleanup(path);
-
                 List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies = value.getDependencies();
 
                 String[] artifactNames = artifactNames(dependencies);
@@ -101,31 +91,23 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                         .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
                         .addJavaVersion(javaVersion)
                         .addDependencyGroup(entry.getKey(), artifacts).build();
-
                 initializrDelegate.applyMetadata(metadata);
 
                 ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry, value, artifactNames);
                 File project = projectGenerator.doGenerateProjectStructure(projectRequest);
 
-                Model model = isNewDir(genProjectHome) ? MavenModelUtils.populateModel(entry.getKey(),
-                        value.getGroupId(), "1.0.0.BUILD-SNAPSHOT")
-                        : MavenModelUtils.getModelFromContainerPom(genProjectHome);
+                File generatedProjectHome = StringUtils.isNotEmpty(this.generatedProjectHome) ?
+                        new File(this.generatedProjectHome) :
+                        StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
+                                null;
 
-                if (MavenModelUtils.addModuleIntoModel(model, entry.getKey())) {
-                    String containerPomFile = String.format("%s/%s", genProjectHome, "pom.xml");
-                    MavenModelUtils.writeModelToFile(model, new FileOutputStream(containerPomFile));
+                if (generatedProjectHome != null) {
+                    moveProjectWithMavenModelsUpdated(entry, project, generatedProjectHome);
                 }
-
-                String generatedAppHome = String.format("%s/%s", genProjectHome, entry.getKey());
-                try {
-                    Files.move(Paths.get(project.toString(), entry.getKey()), Paths.get(generatedAppHome));
-                    SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome, entry.getKey());
+                else {
+                    //no user provided generated project home, fall back to the default used by the Initailzr
+                    getLog().info("Project is generated at " + project.toString());
                 }
-                catch (IOException e) {
-                    getLog().error("Error during plugin execution", e);
-                    throw new IllegalStateException(e);
-                }
-                MavenModelUtils.addModuleInfoToContainerPom(genProjectHome);
             }
         }
         catch (IOException | XmlPullParserException e) {
@@ -133,13 +115,33 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
         }
     }
 
-    private boolean isNewDir(File genProjecthome) {
-        boolean newDir = false;
-        if (!genProjecthome.exists()) {
-            genProjecthome.mkdir();
-            newDir = true;
+    private void moveProjectWithMavenModelsUpdated(Map.Entry<String, GeneratableApp> entry, File project,
+                                                   File generatedProjectHome) throws IOException, XmlPullParserException {
+        Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(entry.getKey(),
+                entry.getValue().getGroupId(), "1.0.0.BUILD-SNAPSHOT")
+                : MavenModelUtils.getModelFromContainerPom(generatedProjectHome);
+
+        if (MavenModelUtils.addModuleIntoModel(model, entry.getKey())) {
+            String containerPomFile = String.format("%s/%s", generatedProjectHome, "pom.xml");
+            MavenModelUtils.writeModelToFile(model, new FileOutputStream(containerPomFile));
         }
-        return newDir;
+
+        try {
+            String generatedAppHome = String.format("%s/%s", generatedProjectHome, entry.getKey());
+            removeExistingContent(Paths.get(generatedAppHome));
+
+            Files.move(Paths.get(project.toString(), entry.getKey()), Paths.get(generatedAppHome));
+            SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
+        }
+        catch (IOException e) {
+            getLog().error("Error during plugin execution", e);
+            throw new IllegalStateException(e);
+        }
+        MavenModelUtils.addModuleInfoToContainerPom(generatedProjectHome);
+    }
+
+    private boolean isNewDir(File genProjecthome) {
+        return !genProjecthome.exists() && genProjecthome.mkdir();
     }
 
     private Dependency[] artifacts(List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies) {
@@ -164,7 +166,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                 .toArray(String[]::new);
     }
 
-    private void initialCleanup(Path path) {
+    private void removeExistingContent(Path path) {
         if (path.toFile().exists()) {
             try {
                 SpringCloudStreamPluginUtils.cleanupGenProjHome(path.toFile());
@@ -215,5 +217,4 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
             });
         }
     }
-
 }

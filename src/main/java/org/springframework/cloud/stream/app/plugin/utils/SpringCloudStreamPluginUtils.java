@@ -38,7 +38,7 @@ public class SpringCloudStreamPluginUtils {
         FileUtils.deleteDirectory(genProjecthome);
     }
 
-    public static void ignoreUnitTestGeneratedByInitializer(String generatedAppHome, String generatedApp) throws IOException {
+    public static void ignoreUnitTestGeneratedByInitializer(String generatedAppHome) throws IOException {
         String testDir = String.format("%s/%s", generatedAppHome, "src/test/java");
 
         Collection<File> files = FileUtils.listFiles(new File(testDir), null, true);
