@@ -117,8 +117,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
     private void moveProjectWithMavenModelsUpdated(Map.Entry<String, GeneratableApp> entry, File project,
                                                    File generatedProjectHome) throws IOException, XmlPullParserException {
-        Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(entry.getKey(),
-                entry.getValue().getGroupId(), "1.0.0.BUILD-SNAPSHOT")
+        Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(generatedProjectHome.getName(),
+                "org.springframework.cloud.stream.apps", "1.0.0.BUILD-SNAPSHOT")
                 : MavenModelUtils.getModelFromContainerPom(generatedProjectHome);
 
         if (MavenModelUtils.addModuleIntoModel(model, entry.getKey())) {
