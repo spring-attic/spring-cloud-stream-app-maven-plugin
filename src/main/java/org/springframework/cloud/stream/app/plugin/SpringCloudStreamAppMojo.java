@@ -63,7 +63,6 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
     private static final String SPRING_CLOUD_STREAM_BINDER_GROUP_ID = "org.springframework.cloud";
 
-
     @Component
     private MavenProject project;
 
@@ -81,6 +80,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
     @Parameter
     private String javaVersion;
+
+    @Parameter
+    private String generatedProejctVersion;
 
     private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
@@ -111,7 +113,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                             .addDependencyGroup(entry.getKey(), starterDep, binderDep).build();
                     initializrDelegate.applyMetadata(metadata);
                     ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID,
-                            getDescription(appArtifactId), getPackageName(appArtifactId), starterArtifactId, binderArtifactId);
+                            getDescription(appArtifactId), getPackageName(appArtifactId),
+                            generatedProejctVersion, starterArtifactId, binderArtifactId);
                     project = projectGenerator.doGenerateProjectStructure(projectRequest);
                 }
                 else {
@@ -126,7 +129,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     initializrDelegate.applyMetadata(metadata);
 
                     ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), value.getGroupId(),
-                            value.getDescription(), value.getPackageName(), artifactNames);
+                            value.getDescription(), value.getPackageName(), generatedProejctVersion, artifactNames);
                     project = projectGenerator.doGenerateProjectStructure(projectRequest);
                 }
 
@@ -267,7 +270,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
         }
 
         private ProjectRequest getProjectRequest(String generatedArtifactId, String generatedAppGroupId,
-                                                 String description, String packageName,
+                                                 String description, String packageName, String version,
                                                  String... artifactNames) {
             ProjectRequest projectRequest = createProjectRequest(artifactNames);
             projectRequest.setBaseDir(generatedArtifactId);
@@ -277,6 +280,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
             projectRequest.setName(generatedArtifactId);
             projectRequest.setDescription(description);
             projectRequest.setPackageName(packageName);
+            projectRequest.setVersion(version);
             return projectRequest;
         }
 

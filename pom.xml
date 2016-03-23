@@ -4,7 +4,7 @@
 
   <groupId>org.springframework.cloud.stream.app.plugin</groupId>
   <artifactId>spring-cloud-stream-app-maven-plugin</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0.BUILD-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>spring-cloud-stream-app-maven-plugin Maven Plugin</name>
@@ -14,7 +14,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
 
   <dependencies>
 
