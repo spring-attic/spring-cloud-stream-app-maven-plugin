@@ -296,11 +296,11 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
             projectGenerator.setTmpdir(tmpdir);
             projectGenerator.setEventPublisher(new ApplicationEventPublisher() {
                 public void publishEvent(ApplicationEvent applicationEvent) {
-                    getLog().info("Generated project : " + applicationEvent.toString());
+                    getLog().debug("Generated project : " + applicationEvent.toString());
                 }
 
                 public void publishEvent(Object o) {
-                    getLog().info("Generated project : " + o.toString());
+                    getLog().debug("Generated project : " + o.toString());
                 }
             });
         }
