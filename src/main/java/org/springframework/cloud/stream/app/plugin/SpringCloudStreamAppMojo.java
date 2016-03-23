@@ -24,9 +24,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
@@ -53,6 +58,11 @@ import io.spring.initializr.metadata.InitializrMetadata;
  */
 @Mojo(name = "generate-app")
 public class SpringCloudStreamAppMojo extends AbstractMojo {
+
+    private static final String SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID = "org.springframework.cloud.stream.app";
+
+    private static final String SPRING_CLOUD_STREAM_BINDER_GROUP_ID = "org.springframework.cloud";
+
 
     @Component
     private MavenProject project;
@@ -83,28 +93,52 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
             for (Map.Entry<String, GeneratableApp> entry : generatedApps.entrySet()) {
                 GeneratableApp value = entry.getValue();
                 List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies = value.getDependencies();
+                File project;
+                if (dependencies == null) {
+                    //No dependencies provided. Fall back to default mechanism and ignore any other attribute provided by the user
+                    //This is specifically for the spring cloud stream app use cases. We expect the convention of
+                    //<technology>-<source>|<sink>|...-<binder-type>
 
-                String[] artifactNames = artifactNames(dependencies);
-                Dependency[] artifacts = artifacts(dependencies);
+                    String appArtifactId = entry.getKey();
+                    String starterArtifactId = constructStarterArtifactId(appArtifactId);
+                    String binderArtifactId = constructBinderArtifact(appArtifactId);
+                    Dependency starterDep = getDependency(starterArtifactId, SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID);
+                    Dependency binderDep = getDependency(binderArtifactId, SPRING_CLOUD_STREAM_BINDER_GROUP_ID);
 
-                InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
-                        .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
-                        .addJavaVersion(javaVersion)
-                        .addDependencyGroup(entry.getKey(), artifacts).build();
-                initializrDelegate.applyMetadata(metadata);
+                    InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
+                            .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
+                            .addJavaVersion(javaVersion)
+                            .addDependencyGroup(entry.getKey(), starterDep, binderDep).build();
+                    initializrDelegate.applyMetadata(metadata);
+                    ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID,
+                            getDescription(appArtifactId), getPackageName(appArtifactId), starterArtifactId, binderArtifactId);
+                    project = projectGenerator.doGenerateProjectStructure(projectRequest);
+                }
+                else {
+                    //user provided dependencies and other metadata
+                    String[] artifactNames = artifactNames(dependencies);
+                    Dependency[] artifacts = artifacts(dependencies);
 
-                ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry, value, artifactNames);
-                File project = projectGenerator.doGenerateProjectStructure(projectRequest);
+                    InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
+                            .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
+                            .addJavaVersion(javaVersion)
+                            .addDependencyGroup(entry.getKey(), artifacts).build();
+                    initializrDelegate.applyMetadata(metadata);
+
+                    ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), value.getGroupId(),
+                            value.getDescription(), value.getPackageName(), artifactNames);
+                    project = projectGenerator.doGenerateProjectStructure(projectRequest);
+                }
 
                 File generatedProjectHome = StringUtils.isNotEmpty(this.generatedProjectHome) ?
                         new File(this.generatedProjectHome) :
                         StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
                                 null;
 
-                if (generatedProjectHome != null) {
+                if (generatedProjectHome != null && project != null) {
                     moveProjectWithMavenModelsUpdated(entry, project, generatedProjectHome);
                 }
-                else {
+                else if (project != null) {
                     //no user provided generated project home, fall back to the default used by the Initailzr
                     getLog().info("Project is generated at " + project.toString());
                 }
@@ -113,6 +147,54 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
         catch (IOException | XmlPullParserException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private String getPackageName(String artifactId) {
+        int countSep = StringUtils.countMatches(artifactId, "-");
+        String[] strings = Stream.of(artifactId.split("-"))
+                .limit(countSep)
+                .toArray(String[]::new);
+
+        String join = StringUtils.join(strings, ".");
+        return String.format("%s.%s", SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID, join);
+    }
+
+    private String getDescription(String artifactId) {
+        String[] strings = Stream.of(artifactId.split("-"))
+                .map(StringUtils::capitalizeFirstLetter)
+                .toArray(String[]::new);
+        String join = StringUtils.join(strings, " ");
+        return String.format("%s %s %s", "Spring Cloud Stream", join, "Binder Application");
+    }
+
+    private Dependency getDependency(String s, String groupId) {
+        Dependency dependency = new Dependency();
+        dependency.setId(s);
+        dependency.setGroupId(groupId);
+        dependency.setArtifactId(s);
+        dependency.setBom(bom.getName());
+        return dependency;
+    }
+
+    private String constructStarterArtifactId(String artifactId) {
+        int countSep = StringUtils.countMatches(artifactId, "-");
+        List<String> s = new ArrayList<>();
+        Stream.of(artifactId.split("-"))
+                .limit(countSep)
+                .collect(Collectors.toCollection(LinkedList::new))
+                .descendingIterator()
+                .forEachRemaining(s::add);
+
+        String collect = s.stream().collect(Collectors.joining("-"));
+        return String.format("%s-%s", "spring-cloud-starter-stream", collect);
+    }
+
+    private String constructBinderArtifact(String artifactId) {
+        int countSep = StringUtils.countMatches(artifactId, "-");
+        Optional<String> first = Stream.of(artifactId.split("-"))
+                .skip(countSep)
+                .findFirst();
+        return String.format("%s-%s", "spring-cloud-stream-binder", first.get());
     }
 
     private void moveProjectWithMavenModelsUpdated(Map.Entry<String, GeneratableApp> entry, File project,
@@ -184,15 +266,17 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
             projectGenerator.setMetadataProvider(() -> metadata);
         }
 
-        private ProjectRequest getProjectRequest(Map.Entry<String, GeneratableApp> entry, GeneratableApp value, String[] artifactNames) {
+        private ProjectRequest getProjectRequest(String generatedArtifactId, String generatedAppGroupId,
+                                                 String description, String packageName,
+                                                 String... artifactNames) {
             ProjectRequest projectRequest = createProjectRequest(artifactNames);
-            projectRequest.setBaseDir(entry.getKey());
+            projectRequest.setBaseDir(generatedArtifactId);
 
-            projectRequest.setGroupId(value.getGroupId());
-            projectRequest.setArtifactId(entry.getKey());
-            projectRequest.setName(entry.getKey());
-            projectRequest.setDescription(value.getDescription());
-            projectRequest.setPackageName(value.getPackageName());
+            projectRequest.setGroupId(generatedAppGroupId);
+            projectRequest.setArtifactId(generatedArtifactId);
+            projectRequest.setName(generatedArtifactId);
+            projectRequest.setDescription(description);
+            projectRequest.setPackageName(packageName);
             return projectRequest;
         }
 
