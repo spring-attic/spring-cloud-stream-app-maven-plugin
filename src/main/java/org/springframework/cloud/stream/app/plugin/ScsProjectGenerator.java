@@ -36,7 +36,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
         try {
             final InputStream is = new FileInputStream(inputFile);
             final OutputStream os = new FileOutputStream(tempOutputFile);
-            MavenModelUtils.addDockerPlugin(is, os);
+            MavenModelUtils.addDockerPlugin(request.getArtifactId(), is, os);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

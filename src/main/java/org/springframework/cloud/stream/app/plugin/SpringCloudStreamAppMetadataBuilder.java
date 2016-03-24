@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.util.StringUtils;
+
 import io.spring.initializr.metadata.*;
 
 /**
@@ -55,6 +57,9 @@ public class SpringCloudStreamAppMetadataBuilder {
     }
 
     public SpringCloudStreamAppMetadataBuilder addJavaVersion(String javaVersion) {
+        if (StringUtils.isEmpty(javaVersion)){
+            javaVersion = "1.8";
+        }
         DefaultMetadataElement javaVer = getMetadataElement(javaVersion, true);
         builder.withCustomizer(initializerMetadata ->
                 initializerMetadata.getJavaVersions().getContent().add(javaVer));

@@ -69,7 +69,7 @@ public class MavenModelUtils {
         return reader.read(new FileReader(pom));
     }
 
-    public static void addDockerPlugin(InputStream is, OutputStream os) throws IOException {
+    public static void addDockerPlugin(String artifactId, InputStream is, OutputStream os) throws IOException {
         final MavenXpp3Reader reader = new MavenXpp3Reader();
 
         Model pomModel;
@@ -107,7 +107,7 @@ public class MavenModelUtils {
 
         addElement(exec, "arg", "java");
         addElement(exec, "arg", "-jar");
-        addElement(exec, "arg", "/maven/demo.jar");
+        addElement(exec, "arg", "/maven/" + artifactId + ".jar");
 
         final Xpp3Dom assembly = addElement(build, "assembly");
         addElement(assembly, "descriptor", "assembly.xml");

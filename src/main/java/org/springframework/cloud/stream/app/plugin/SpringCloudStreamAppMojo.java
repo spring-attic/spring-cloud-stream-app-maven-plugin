@@ -37,10 +37,8 @@ import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -63,12 +61,6 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
     private static final String SPRING_CLOUD_STREAM_BINDER_GROUP_ID = "org.springframework.cloud";
 
-    @Component
-    private MavenProject project;
-
-    @Parameter
-    private String basedir;
-
     @Parameter
     private Map<String, GeneratableApp> generatedApps;
 
@@ -82,7 +74,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
     private String javaVersion;
 
     @Parameter
-    private String generatedProejctVersion;
+    private String generatedProjectVersion;
 
     private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
@@ -114,7 +106,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     initializrDelegate.applyMetadata(metadata);
                     ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID,
                             getDescription(appArtifactId), getPackageName(appArtifactId),
-                            generatedProejctVersion, starterArtifactId, binderArtifactId);
+                            generatedProjectVersion, starterArtifactId, binderArtifactId);
                     project = projectGenerator.doGenerateProjectStructure(projectRequest);
                 }
                 else {
@@ -129,7 +121,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     initializrDelegate.applyMetadata(metadata);
 
                     ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), value.getGroupId(),
-                            value.getDescription(), value.getPackageName(), generatedProejctVersion, artifactNames);
+                            value.getDescription(), value.getPackageName(), generatedProjectVersion, artifactNames);
                     project = projectGenerator.doGenerateProjectStructure(projectRequest);
                 }
 
@@ -139,7 +131,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                                 null;
 
                 if (generatedProjectHome != null && project != null) {
-                    moveProjectWithMavenModelsUpdated(entry, project, generatedProjectHome);
+                    moveProjectWithMavenModelsUpdated(entry.getKey(), project, generatedProjectHome);
                 }
                 else if (project != null) {
                     //no user provided generated project home, fall back to the default used by the Initailzr
@@ -200,22 +192,22 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
         return String.format("%s-%s", "spring-cloud-stream-binder", first.get());
     }
 
-    private void moveProjectWithMavenModelsUpdated(Map.Entry<String, GeneratableApp> entry, File project,
+    private void moveProjectWithMavenModelsUpdated(String key, File project,
                                                    File generatedProjectHome) throws IOException, XmlPullParserException {
         Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(generatedProjectHome.getName(),
                 "org.springframework.cloud.stream.apps", "1.0.0.BUILD-SNAPSHOT")
                 : MavenModelUtils.getModelFromContainerPom(generatedProjectHome);
 
-        if (MavenModelUtils.addModuleIntoModel(model, entry.getKey())) {
+        if (model != null && MavenModelUtils.addModuleIntoModel(model, key)) {
             String containerPomFile = String.format("%s/%s", generatedProjectHome, "pom.xml");
             MavenModelUtils.writeModelToFile(model, new FileOutputStream(containerPomFile));
         }
 
         try {
-            String generatedAppHome = String.format("%s/%s", generatedProjectHome, entry.getKey());
+            String generatedAppHome = String.format("%s/%s", generatedProjectHome, key);
             removeExistingContent(Paths.get(generatedAppHome));
 
-            Files.move(Paths.get(project.toString(), entry.getKey()), Paths.get(generatedAppHome));
+            Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
             SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
         }
         catch (IOException e) {
@@ -226,7 +218,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
     }
 
     private boolean isNewDir(File genProjecthome) {
-        return !genProjecthome.exists() && genProjecthome.mkdir();
+        return (!genProjecthome.exists() && genProjecthome.mkdir());
     }
 
     private Dependency[] artifacts(List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies) {
