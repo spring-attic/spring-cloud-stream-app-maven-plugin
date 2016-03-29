@@ -6,7 +6,7 @@
     <dependencySets>
         <dependencySet>
             <includes>
-                <include>org.springframework.boot:${artifactId}</include>
+                <include>org.springframework.cloud.stream.app:${artifactId}</include>
             </includes>
             <outputDirectory>.</outputDirectory>
             <outputFileNameMapping>${artifactId}.jar</outputFileNameMapping>

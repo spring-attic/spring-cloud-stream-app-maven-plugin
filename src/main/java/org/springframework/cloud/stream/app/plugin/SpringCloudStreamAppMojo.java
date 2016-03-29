@@ -102,7 +102,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
                             .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
                             .addJavaVersion(javaVersion)
-                            .addDependencyGroup(entry.getKey(), starterDep, binderDep).build();
+                            .addDependencyGroup(appArtifactId, starterDep, binderDep).build();
                     initializrDelegate.applyMetadata(metadata);
                     ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID,
                             getDescription(appArtifactId), getPackageName(appArtifactId),
@@ -118,6 +118,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                             .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
                             .addJavaVersion(javaVersion)
                             .addDependencyGroup(entry.getKey(), artifacts).build();
+
                     initializrDelegate.applyMetadata(metadata);
 
                     ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), value.getGroupId(),

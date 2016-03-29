@@ -115,6 +115,7 @@ public class MavenModelUtils {
         dockerPlugin.setConfiguration(mavenPluginConfiguration);
         pomModel.getBuild().addPlugin(dockerPlugin);
 
+        pomModel.getProperties().setProperty("docker.image", artifactId);
         pomModel.toString();
 
         writeModelToFile(pomModel, os);
