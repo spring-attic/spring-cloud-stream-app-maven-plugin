@@ -126,7 +126,7 @@ public class MavenModelUtils {
         dockerPlugin.addExecution(pluginExecution);
 
         final Profile dockerBuildProfile = new Profile();
-        dockerBuildProfile.setId("dockerBuild");
+        dockerBuildProfile.setId("docker");
         dockerBuildProfile.setBuild(new BuildBase());
         dockerBuildProfile.getBuild().addPlugin(dockerPlugin);
 
