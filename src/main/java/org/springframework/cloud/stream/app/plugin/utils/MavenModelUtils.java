@@ -7,9 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Collections;
 
+import org.apache.maven.model.BuildBase;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.Profile;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -113,11 +117,22 @@ public class MavenModelUtils {
         addElement(assembly, "descriptor", "assembly.xml");
 
         dockerPlugin.setConfiguration(mavenPluginConfiguration);
-        pomModel.getBuild().addPlugin(dockerPlugin);
+        //pomModel.getBuild().addPlugin(dockerPlugin);
 
         pomModel.getProperties().setProperty("docker.image", artifactId);
-        pomModel.toString();
 
+        PluginExecution pluginExecution = new PluginExecution();
+        pluginExecution.setPhase("package");
+        pluginExecution.setGoals(Collections.singletonList("build"));
+        dockerPlugin.addExecution(pluginExecution);
+
+        final Profile dockerBuildProfile = new Profile();
+        dockerBuildProfile.setId("dockerBuild");
+        dockerBuildProfile.setBuild(new BuildBase());
+        dockerBuildProfile.getBuild().addPlugin(dockerPlugin);
+
+        pomModel.addProfile(dockerBuildProfile);
+        pomModel.toString();
         writeModelToFile(pomModel, os);
     }
 

@@ -57,8 +57,6 @@ import io.spring.initializr.metadata.InitializrMetadata;
 @Mojo(name = "generate-app")
 public class SpringCloudStreamAppMojo extends AbstractMojo {
 
-    private static final String SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID = "org.springframework.cloud.stream.app";
-
     private static final String SPRING_CLOUD_STREAM_BINDER_GROUP_ID = "org.springframework.cloud";
 
     @Parameter
@@ -76,11 +74,15 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
     @Parameter
     private String generatedProjectVersion;
 
+    @Parameter
+    private String applicationType;
+
     private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         final InitializrDelegate initializrDelegate = new InitializrDelegate();
+        final String generatedAppGroupId = getApplicationGroupId(applicationType);
 
         initializrDelegate.prepareProjectGenerator();
         try {
@@ -93,20 +95,30 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     //This is specifically for the spring cloud stream app use cases. We expect the convention of
                     //<technology>-<source>|<sink>|...-<binder-type>
 
+                    List<Dependency> deps = new ArrayList<>();
+                    List<String> artifactIds = new ArrayList<>();
+
                     String appArtifactId = entry.getKey();
                     String starterArtifactId = constructStarterArtifactId(appArtifactId);
-                    String binderArtifactId = constructBinderArtifact(appArtifactId);
-                    Dependency starterDep = getDependency(starterArtifactId, SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID);
-                    Dependency binderDep = getDependency(binderArtifactId, SPRING_CLOUD_STREAM_BINDER_GROUP_ID);
-
+                    Dependency starterDep = getDependency(starterArtifactId, generatedAppGroupId);
+                    deps.add(starterDep);
+                    artifactIds.add(starterArtifactId);
+                    if (applicationType.equals("stream")){ //TODO: convert enum
+                        String binderArtifactId = constructBinderArtifact(appArtifactId);
+                        Dependency binderDep = getDependency(binderArtifactId, SPRING_CLOUD_STREAM_BINDER_GROUP_ID);
+                        deps.add(binderDep);
+                        artifactIds.add(binderArtifactId);
+                    }
+                    Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
+                    String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
                     InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
                             .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
                             .addJavaVersion(javaVersion)
-                            .addDependencyGroup(appArtifactId, starterDep, binderDep).build();
+                            .addDependencyGroup(appArtifactId, depArray).build();
                     initializrDelegate.applyMetadata(metadata);
-                    ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID,
+                    ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), generatedAppGroupId,
                             getDescription(appArtifactId), getPackageName(appArtifactId),
-                            generatedProjectVersion, starterArtifactId, binderArtifactId);
+                            generatedProjectVersion, artifactNames);
                     project = projectGenerator.doGenerateProjectStructure(projectRequest);
                 }
                 else {
@@ -145,6 +157,10 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
         }
     }
 
+    private static String getApplicationGroupId(String applicationType) {
+        return String.format("%s.%s.%s", "org.springframework.cloud", applicationType, "app");
+    }
+
     private String getPackageName(String artifactId) {
         int countSep = StringUtils.countMatches(artifactId, "-");
         String[] strings = Stream.of(artifactId.split("-"))
@@ -152,7 +168,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                 .toArray(String[]::new);
 
         String join = StringUtils.join(strings, ".");
-        return String.format("%s.%s", SPRING_CLOUD_STREAM_APP_STARTER_GROUP_ID, join);
+        return String.format("%s.%s", getApplicationGroupId(applicationType), join);
     }
 
     private String getDescription(String artifactId) {
@@ -160,7 +176,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                 .map(StringUtils::capitalizeFirstLetter)
                 .toArray(String[]::new);
         String join = StringUtils.join(strings, " ");
-        return String.format("%s %s %s", "Spring Cloud Stream", join, "Binder Application");
+        String appSuffix = applicationType.equals("stream") ? "Binder Application" : "Application";
+        return String.format("%s %s %s %s", "Spring Cloud", StringUtils.capitalizeFirstLetter(applicationType),
+                join, appSuffix);
     }
 
     private Dependency getDependency(String s, String groupId) {
@@ -175,14 +193,24 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
     private String constructStarterArtifactId(String artifactId) {
         int countSep = StringUtils.countMatches(artifactId, "-");
         List<String> s = new ArrayList<>();
-        Stream.of(artifactId.split("-"))
-                .limit(countSep)
-                .collect(Collectors.toCollection(LinkedList::new))
-                .descendingIterator()
-                .forEachRemaining(s::add);
+        //stream app starters follow a specific naming pattern - for ex: spring-cloud-starter-source-time-kafka
+        //but the artifact id is time-source-kafka
+        if (applicationType.equals("stream")) {
+            Stream.of(artifactId.split("-"))
+                    .limit(countSep)
+                    .collect(Collectors.toCollection(LinkedList::new))
+                    .descendingIterator()
+                    .forEachRemaining(s::add);
+        }
+        else {
+            Stream.of(artifactId.split("-"))
+                    .limit(countSep)
+                    .collect(Collectors.toCollection(LinkedList::new)).addAll(s);
+        }
 
         String collect = s.stream().collect(Collectors.joining("-"));
-        return String.format("%s-%s", "spring-cloud-starter-stream", collect);
+
+        return String.format("%s-%s-%s", "spring-cloud-starter", applicationType, collect);
     }
 
     private String constructBinderArtifact(String artifactId) {

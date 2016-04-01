@@ -56,6 +56,10 @@ public class SpringCloudStreamAppMojoTest {
     @Before
     public void setup() throws Exception {
 
+        Field applicationType = mojoClazz.getDeclaredField("applicationType");
+        applicationType.setAccessible(true);
+        ReflectionUtils.setField(applicationType, springCloudStreamAppMojo, "stream");
+
         Field generatedProjectVersion = mojoClazz.getDeclaredField("generatedProjectVersion");
         generatedProjectVersion.setAccessible(true);
         ReflectionUtils.setField(generatedProjectVersion, springCloudStreamAppMojo, "1.0.0.BUILD-SNAPSHOT");
@@ -149,7 +153,9 @@ public class SpringCloudStreamAppMojoTest {
         List<Plugin> plugins = pomModel.getBuild().getPlugins();
 
         assertThat(plugins.stream().filter(p -> p.getArtifactId().equals("spring-boot-maven-plugin")).count(), equalTo(1L));
-        assertThat(plugins.stream().filter(p -> p.getArtifactId().equals("docker-maven-plugin")).count(), equalTo(1L));
+
+        List<Plugin> plugins1 = pomModel.getProfiles().get(0).getBuild().getPlugins();
+        assertThat(plugins1.stream().filter(p -> p.getArtifactId().equals("docker-maven-plugin")).count(), equalTo(1L));
 
         DependencyManagement dependencyManagement = pomModel.getDependencyManagement();
         List<org.apache.maven.model.Dependency> dependencies1 = dependencyManagement.getDependencies();
