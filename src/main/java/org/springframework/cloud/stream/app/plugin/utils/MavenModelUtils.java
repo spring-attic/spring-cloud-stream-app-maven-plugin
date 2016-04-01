@@ -91,11 +91,10 @@ public class MavenModelUtils {
 
         final Xpp3Dom mavenPluginConfiguration = new Xpp3Dom("configuration");
 
-
         final Xpp3Dom images = addElement(mavenPluginConfiguration, "images");
 
         final Xpp3Dom image = addElement(images, "image");
-        addElement(image, "name", "${docker.image}");
+        addElement(image, "name", "springcloudstream/${project.artifactId}");
 
         final Xpp3Dom build = addElement(image, "build");
         addElement(build, "from", "anapsix/alpine-java:8");
@@ -119,7 +118,7 @@ public class MavenModelUtils {
         dockerPlugin.setConfiguration(mavenPluginConfiguration);
         //pomModel.getBuild().addPlugin(dockerPlugin);
 
-        pomModel.getProperties().setProperty("docker.image", artifactId);
+        //pomModel.getProperties().setProperty("docker.image", artifactId);
 
         PluginExecution pluginExecution = new PluginExecution();
         pluginExecution.setPhase("package");
