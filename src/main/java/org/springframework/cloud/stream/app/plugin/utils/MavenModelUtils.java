@@ -120,9 +120,11 @@ public class MavenModelUtils {
 
         //pomModel.getProperties().setProperty("docker.image", artifactId);
 
+        pomModel.getProperties().setProperty("default.docker.goal", "build");
+
         PluginExecution pluginExecution = new PluginExecution();
         pluginExecution.setPhase("package");
-        pluginExecution.setGoals(Collections.singletonList("build"));
+        pluginExecution.setGoals(Collections.singletonList("${default.docker.goal}"));
         dockerPlugin.addExecution(pluginExecution);
 
         final Profile dockerBuildProfile = new Profile();

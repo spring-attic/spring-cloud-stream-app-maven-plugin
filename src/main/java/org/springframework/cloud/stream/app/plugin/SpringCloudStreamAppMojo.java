@@ -203,13 +203,12 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     .forEachRemaining(s::add);
         }
         else {
-            Stream.of(artifactId.split("-"))
+            s.addAll(Stream.of(artifactId.split("-"))
                     .limit(countSep)
-                    .collect(Collectors.toCollection(LinkedList::new)).addAll(s);
+                    .collect(toList()));
         }
 
         String collect = s.stream().collect(Collectors.joining("-"));
-
         return String.format("%s-%s-%s", "spring-cloud-starter", applicationType, collect);
     }
 
