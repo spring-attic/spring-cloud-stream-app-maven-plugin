@@ -7,13 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Collections;
 
-import org.apache.maven.model.BuildBase;
+import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginExecution;
-import org.apache.maven.model.Profile;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -36,6 +33,17 @@ public class MavenModelUtils {
         model.setPackaging("pom");
         model.setVersion(version);
         model.setModelVersion("4.0.0");
+        Build build = new Build();
+
+        model.setBuild(build);
+
+        Plugin plugin = new Plugin();
+        plugin.setGroupId("io.fabric8");
+        plugin.setArtifactId("docker-maven-plugin");
+        plugin.setVersion("0.14.2");
+        build.addPlugin(plugin);
+
+
         return model;
     }
 
@@ -46,6 +54,16 @@ public class MavenModelUtils {
             model.setGroupId(groupId);
             model.setArtifactId(genProjecthome.getName());
             model.setVersion(version);
+
+            Build build = new Build();
+
+            model.setBuild(build);
+
+            Plugin plugin = new Plugin();
+            plugin.setGroupId("io.fabric8");
+            plugin.setArtifactId("docker-maven-plugin");
+            plugin.setVersion("0.14.2");
+            build.addPlugin(plugin);
         }
         return model;
     }
@@ -123,19 +141,7 @@ public class MavenModelUtils {
 
         dockerPlugin.setConfiguration(mavenPluginConfiguration);
 
-        pomModel.getProperties().setProperty("default.docker.goal", "build");
-
-        PluginExecution pluginExecution = new PluginExecution();
-        pluginExecution.setPhase("package");
-        pluginExecution.setGoals(Collections.singletonList("${default.docker.goal}"));
-        dockerPlugin.addExecution(pluginExecution);
-
-        final Profile dockerBuildProfile = new Profile();
-        dockerBuildProfile.setId("docker");
-        dockerBuildProfile.setBuild(new BuildBase());
-        dockerBuildProfile.getBuild().addPlugin(dockerPlugin);
-
-        pomModel.addProfile(dockerBuildProfile);
+        pomModel.getBuild().addPlugin(dockerPlugin);
         pomModel.toString();
         writeModelToFile(pomModel, os);
     }

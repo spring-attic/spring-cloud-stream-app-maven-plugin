@@ -154,8 +154,7 @@ public class SpringCloudStreamAppMojoTest {
 
         assertThat(plugins.stream().filter(p -> p.getArtifactId().equals("spring-boot-maven-plugin")).count(), equalTo(1L));
 
-        List<Plugin> plugins1 = pomModel.getProfiles().get(0).getBuild().getPlugins();
-        assertThat(plugins1.stream().filter(p -> p.getArtifactId().equals("docker-maven-plugin")).count(), equalTo(1L));
+        assertThat(plugins.stream().filter(p -> p.getArtifactId().equals("docker-maven-plugin")).count(), equalTo(1L));
 
         DependencyManagement dependencyManagement = pomModel.getDependencyManagement();
         List<org.apache.maven.model.Dependency> dependencies1 = dependencyManagement.getDependencies();
