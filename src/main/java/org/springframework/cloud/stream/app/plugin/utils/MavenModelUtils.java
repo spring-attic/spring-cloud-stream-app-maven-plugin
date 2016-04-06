@@ -33,18 +33,20 @@ public class MavenModelUtils {
         model.setPackaging("pom");
         model.setVersion(version);
         model.setModelVersion("4.0.0");
+
+        getBuildWithDockerPluginDefinition(model);
+
+        return model;
+    }
+
+    private static void getBuildWithDockerPluginDefinition(Model model) {
         Build build = new Build();
-
         model.setBuild(build);
-
         Plugin plugin = new Plugin();
         plugin.setGroupId("io.fabric8");
         plugin.setArtifactId("docker-maven-plugin");
         plugin.setVersion("0.14.2");
         build.addPlugin(plugin);
-
-
-        return model;
     }
 
     public static Model getModelFromContainerPom(File genProjecthome, String groupId, String version) throws IOException, XmlPullParserException {
@@ -55,15 +57,7 @@ public class MavenModelUtils {
             model.setArtifactId(genProjecthome.getName());
             model.setVersion(version);
 
-            Build build = new Build();
-
-            model.setBuild(build);
-
-            Plugin plugin = new Plugin();
-            plugin.setGroupId("io.fabric8");
-            plugin.setArtifactId("docker-maven-plugin");
-            plugin.setVersion("0.14.2");
-            build.addPlugin(plugin);
+            getBuildWithDockerPluginDefinition(model);
         }
         return model;
     }
