@@ -80,6 +80,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
     private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
     public void execute() throws MojoExecutionException, MojoFailureException {
+        projectGenerator.setDockerHubOrg("springcloud" + applicationType);
 
         final InitializrDelegate initializrDelegate = new InitializrDelegate();
         final String generatedAppGroupId = getApplicationGroupId(applicationType);
@@ -222,9 +223,10 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
     private void moveProjectWithMavenModelsUpdated(String key, File project,
                                                    File generatedProjectHome) throws IOException, XmlPullParserException {
+
         Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(generatedProjectHome.getName(),
-                "org.springframework.cloud.stream.apps", "1.0.0.BUILD-SNAPSHOT")
-                : MavenModelUtils.getModelFromContainerPom(generatedProjectHome);
+                getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT")
+                : MavenModelUtils.getModelFromContainerPom(generatedProjectHome, getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT");
 
         if (model != null && MavenModelUtils.addModuleIntoModel(model, key)) {
             String containerPomFile = String.format("%s/%s", generatedProjectHome, "pom.xml");

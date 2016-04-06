@@ -15,9 +15,12 @@ import io.spring.initializr.generator.ProjectRequest;
 /**
  *
  * @author Gunnar Hillert
+ * @author Soby Chacko
  *
  */
 public class ScsProjectGenerator extends ProjectGenerator {
+
+    private String dockerHubOrg;
 
     @Override
     protected File doGenerateProjectStructure(ProjectRequest request) {
@@ -36,7 +39,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
         try {
             final InputStream is = new FileInputStream(inputFile);
             final OutputStream os = new FileOutputStream(tempOutputFile);
-            MavenModelUtils.addDockerPlugin(request.getArtifactId(), is, os);
+            MavenModelUtils.addDockerPlugin(request.getArtifactId(), dockerHubOrg, is, os);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -49,4 +52,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
 
     }
 
+    public void setDockerHubOrg(String dockerHubOrg) {
+        this.dockerHubOrg = dockerHubOrg;
+    }
 }

@@ -39,9 +39,15 @@ public class MavenModelUtils {
         return model;
     }
 
-    public static Model getModelFromContainerPom(File genProjecthome) throws IOException, XmlPullParserException {
+    public static Model getModelFromContainerPom(File genProjecthome, String groupId, String version) throws IOException, XmlPullParserException {
         File pom = new File(genProjecthome, "pom.xml");
-        return pom.exists() ? getModel(pom) : null;
+        Model model = pom.exists() ? getModel(pom) : null;
+        if (model != null) {
+            model.setGroupId(groupId);
+            model.setArtifactId(genProjecthome.getName());
+            model.setVersion(version);
+        }
+        return model;
     }
 
     public static void addModuleInfoToContainerPom(File genProjecthome) throws IOException, XmlPullParserException {
@@ -73,7 +79,7 @@ public class MavenModelUtils {
         return reader.read(new FileReader(pom));
     }
 
-    public static void addDockerPlugin(String artifactId, InputStream is, OutputStream os) throws IOException {
+    public static void addDockerPlugin(String artifactId, String dockerHubOrg, InputStream is, OutputStream os) throws IOException {
         final MavenXpp3Reader reader = new MavenXpp3Reader();
 
         Model pomModel;
@@ -94,7 +100,7 @@ public class MavenModelUtils {
         final Xpp3Dom images = addElement(mavenPluginConfiguration, "images");
 
         final Xpp3Dom image = addElement(images, "image");
-        addElement(image, "name", "springcloudstream/${project.artifactId}");
+        addElement(image, "name", dockerHubOrg + "/${project.artifactId}");
 
         final Xpp3Dom build = addElement(image, "build");
         addElement(build, "from", "anapsix/alpine-java:8");
@@ -116,9 +122,6 @@ public class MavenModelUtils {
         addElement(assembly, "descriptor", "assembly.xml");
 
         dockerPlugin.setConfiguration(mavenPluginConfiguration);
-        //pomModel.getBuild().addPlugin(dockerPlugin);
-
-        //pomModel.getProperties().setProperty("docker.image", artifactId);
 
         pomModel.getProperties().setProperty("default.docker.goal", "build");
 
