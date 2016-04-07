@@ -24,7 +24,11 @@ import java.util.List;
 
 import org.springframework.util.StringUtils;
 
-import io.spring.initializr.metadata.*;
+import io.spring.initializr.metadata.BillOfMaterials;
+import io.spring.initializr.metadata.DefaultMetadataElement;
+import io.spring.initializr.metadata.DependencyGroup;
+import io.spring.initializr.metadata.InitializrMetadata;
+import io.spring.initializr.metadata.InitializrMetadataBuilder;
 
 /**
  * @author Soby Chacko
@@ -90,19 +94,22 @@ public class SpringCloudStreamAppMetadataBuilder {
         return metadataElement;
     }
 
-    SpringCloudStreamAppMetadataBuilder addRepository(String id, String name, String url, boolean snapshotsEnabled) throws MalformedURLException {
-        Repository repo = new Repository();
-        repo.setName(name);
-        repo.setUrl(new URL(url));
-        repo.setSnapshotsEnabled(snapshotsEnabled);
+    SpringCloudStreamAppMetadataBuilder addRepositories(List<Repository> repositories) throws MalformedURLException {
 
-        builder.withCustomizer (initializrMetadata ->
-                initializrMetadata.getConfiguration().getEnv().getRepositories().put(id, repo));
+        for (Repository repository : repositories) {
 
+            io.spring.initializr.metadata.Repository repo = new io.spring.initializr.metadata.Repository();
+            repo.setName(repository.getName());
+            repo.setUrl(new URL(repository.getUrl()));
+            repo.setSnapshotsEnabled(repository.isSnapshotEnabled());
+
+            builder.withCustomizer(initializrMetadata ->
+                    initializrMetadata.getConfiguration().getEnv().getRepositories().put(repository.getId(), repo));
+        }
         return this;
     }
 
-    public SpringCloudStreamAppMetadataBuilder addBom(String id, String groupId, String artifactId, String version) {
+    public SpringCloudStreamAppMetadataBuilder addBom(String id, String groupId, String artifactId, String version, String... repoIds) {
         BillOfMaterials billOfMaterials = new BillOfMaterials();
         billOfMaterials.setGroupId(groupId);
         billOfMaterials.setArtifactId(artifactId);
@@ -110,7 +117,9 @@ public class SpringCloudStreamAppMetadataBuilder {
         List<String> repos = new ArrayList<>();
         repos.add("spring-snapshots");
         repos.add("spring-milestones");
-        repos.add("spring-libs-release");
+        for (String repoId : repoIds) {
+            repos.add(repoId);
+        }
         billOfMaterials.setRepositories(repos);
         return addBom(id, billOfMaterials);
     }

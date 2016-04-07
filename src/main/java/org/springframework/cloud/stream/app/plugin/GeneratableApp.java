@@ -8,8 +8,10 @@ import java.util.List;
 public class GeneratableApp {
 
     List<Dependency> dependencies;
+    List<String> extraRepository;
 
     String groupId;
+
     String description;
     String packageName;
     String generatedProjectHome;
@@ -20,6 +22,14 @@ public class GeneratableApp {
 
     public void setDependencies(List<Dependency> dependencies) {
         this.dependencies = dependencies;
+    }
+
+    public List<String> getExtraRepository() {
+        return extraRepository;
+    }
+
+    public void setExtraRepository(List<String> extraRepository) {
+        this.extraRepository = extraRepository;
     }
 
     public String getGroupId() {

@@ -46,6 +46,7 @@ import org.springframework.cloud.stream.app.plugin.utils.MavenModelUtils;
 import org.springframework.cloud.stream.app.plugin.utils.SpringCloudStreamPluginUtils;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.util.CollectionUtils;
 
 import io.spring.initializr.generator.ProjectRequest;
 import io.spring.initializr.metadata.Dependency;
@@ -76,6 +77,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
     @Parameter
     private String applicationType;
+
+    @Parameter
+    List<Repository> extraRepositories;
 
     private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
@@ -112,9 +116,20 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     }
                     Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
                     String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
+                    List<Repository> extraReposToAdd = new ArrayList<>();
+                    List<String> extraRepoIds = value.extraRepository;
+                    if (!CollectionUtils.isEmpty(extraRepositories) && !CollectionUtils.isEmpty(extraRepoIds)) {
+                        extraReposToAdd = extraRepositories.stream().filter(e -> extraRepoIds.contains(e.getId()))
+                                .collect(Collectors.toList());
+                    }
+                    String[] repoIds = new String[]{};
+                    if(!CollectionUtils.isEmpty(extraRepoIds)) {
+                        repoIds = new String[extraRepoIds.size()];
+                        repoIds = extraRepoIds.toArray(repoIds);
+                    }
                     InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
-                            .addRepository("spring-libs-release", "Spring Libs Release", "http://repo.spring.io/libs-release", false)
-                            .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
+                            .addRepositories(extraReposToAdd)
+                            .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion(), repoIds)
                             .addJavaVersion(javaVersion)
                             .addDependencyGroup(appArtifactId, depArray).build();
                     initializrDelegate.applyMetadata(metadata);

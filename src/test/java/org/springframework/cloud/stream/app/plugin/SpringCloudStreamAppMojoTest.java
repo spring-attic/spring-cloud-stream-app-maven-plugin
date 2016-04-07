@@ -34,9 +34,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.DependencyManagement;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Plugin;
+import org.apache.maven.model.*;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.Before;
@@ -161,6 +159,6 @@ public class SpringCloudStreamAppMojoTest {
         assertThat(dependencies1.stream().filter(d -> d.getArtifactId().equals("spring-cloud-stream-app-dependencies")).count(),
                 equalTo(1L));
 
-        assertThat(pomModel.getRepositories().size(), equalTo(3));
+        assertThat(pomModel.getRepositories().size(), equalTo(2));
     }
 }
