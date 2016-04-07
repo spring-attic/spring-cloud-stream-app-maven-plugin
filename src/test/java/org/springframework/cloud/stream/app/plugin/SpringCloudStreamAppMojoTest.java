@@ -161,6 +161,6 @@ public class SpringCloudStreamAppMojoTest {
         assertThat(dependencies1.stream().filter(d -> d.getArtifactId().equals("spring-cloud-stream-app-dependencies")).count(),
                 equalTo(1L));
 
-        assertThat(pomModel.getRepositories().size(), equalTo(2));
+        assertThat(pomModel.getRepositories().size(), equalTo(3));
     }
 }

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.stream.app.plugin;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -88,6 +90,18 @@ public class SpringCloudStreamAppMetadataBuilder {
         return metadataElement;
     }
 
+    SpringCloudStreamAppMetadataBuilder addRepository(String id, String name, String url, boolean snapshotsEnabled) throws MalformedURLException {
+        Repository repo = new Repository();
+        repo.setName(name);
+        repo.setUrl(new URL(url));
+        repo.setSnapshotsEnabled(snapshotsEnabled);
+
+        builder.withCustomizer (initializrMetadata ->
+                initializrMetadata.getConfiguration().getEnv().getRepositories().put(id, repo));
+
+        return this;
+    }
+
     public SpringCloudStreamAppMetadataBuilder addBom(String id, String groupId, String artifactId, String version) {
         BillOfMaterials billOfMaterials = new BillOfMaterials();
         billOfMaterials.setGroupId(groupId);
@@ -96,6 +110,7 @@ public class SpringCloudStreamAppMetadataBuilder {
         List<String> repos = new ArrayList<>();
         repos.add("spring-snapshots");
         repos.add("spring-milestones");
+        repos.add("spring-libs-release");
         billOfMaterials.setRepositories(repos);
         return addBom(id, billOfMaterials);
     }

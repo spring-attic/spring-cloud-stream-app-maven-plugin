@@ -113,6 +113,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
                     String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
                     InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
+                            .addRepository("spring-libs-release", "Spring Libs Release", "http://repo.spring.io/libs-release", false)
                             .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
                             .addJavaVersion(javaVersion)
                             .addDependencyGroup(appArtifactId, depArray).build();
