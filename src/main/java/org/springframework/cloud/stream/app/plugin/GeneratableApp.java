@@ -16,6 +16,8 @@ public class GeneratableApp {
     String packageName;
     String generatedProjectHome;
 
+    String starterArtifactSuffix;
+
     public List<Dependency> getDependencies() {
         return dependencies;
     }
@@ -55,6 +57,14 @@ public class GeneratableApp {
     public void setPackageName(String packageName)
     {
         this.packageName = packageName;
+    }
+
+    public String getStarterArtifactSuffix() {
+        return starterArtifactSuffix;
+    }
+
+    public void setStarterArtifactSuffix(String starterArtifactSuffix) {
+        this.starterArtifactSuffix = starterArtifactSuffix;
     }
 
     @Override

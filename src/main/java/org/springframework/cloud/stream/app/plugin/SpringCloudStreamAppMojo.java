@@ -104,7 +104,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                     List<String> artifactIds = new ArrayList<>();
 
                     String appArtifactId = entry.getKey();
-                    String starterArtifactId = constructStarterArtifactId(appArtifactId);
+                    String starterArtifactId = StringUtils.isEmpty(value.getStarterArtifactSuffix()) ?
+                            constructStarterArtifactId(appArtifactId) : "spring-cloud-starter-stream-" + value.getStarterArtifactSuffix();
                     Dependency starterDep = getDependency(starterArtifactId, generatedAppGroupId);
                     deps.add(starterDep);
                     artifactIds.add(starterArtifactId);
