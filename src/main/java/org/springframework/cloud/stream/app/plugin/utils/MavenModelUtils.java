@@ -1,13 +1,5 @@
 package org.springframework.cloud.stream.app.plugin.utils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
@@ -15,6 +7,8 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+
+import java.io.*;
 
 /**
  * @author Soby Chacko
@@ -137,6 +131,34 @@ public class MavenModelUtils {
 
         pomModel.getBuild().addPlugin(dockerPlugin);
         pomModel.toString();
+        writeModelToFile(pomModel, os);
+    }
+
+    public static void addSurefirePlugin( InputStream is, OutputStream os) throws IOException {
+        final MavenXpp3Reader reader = new MavenXpp3Reader();
+
+        Model pomModel;
+        try {
+            pomModel = reader.read(is);
+        }
+        catch (IOException | XmlPullParserException e) {
+            throw new IllegalStateException(e);
+        }
+
+        final Plugin surefirePlugin = new Plugin();
+        surefirePlugin.setGroupId("org.apache.maven.plugins");
+        surefirePlugin.setArtifactId("maven-surefire-plugin");
+        surefirePlugin.setVersion("2.19.1");
+        final Xpp3Dom mavenPluginConfiguration = new Xpp3Dom("configuration");
+        final Xpp3Dom skipTests = new Xpp3Dom("skipTests");
+        skipTests.setValue("${skipTests}");
+        mavenPluginConfiguration.addChild(skipTests);
+
+        surefirePlugin.setConfiguration(mavenPluginConfiguration);
+        pomModel.getBuild().addPlugin(surefirePlugin);
+
+        pomModel.getProperties().setProperty("skipTests", "true");
+
         writeModelToFile(pomModel, os);
     }
 

@@ -18,6 +18,16 @@ public class GeneratableApp {
 
     String starterArtifactSuffix;
 
+    boolean testsIgnored;
+
+    public boolean isTestsIgnored() {
+        return testsIgnored;
+    }
+
+    public void setTestsIgnored(boolean testsIgnored) {
+        this.testsIgnored = testsIgnored;
+    }
+
     public List<Dependency> getDependencies() {
         return dependencies;
     }

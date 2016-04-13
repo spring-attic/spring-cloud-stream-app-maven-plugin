@@ -34,19 +34,23 @@ public class ScsProjectGenerator extends ProjectGenerator {
         write(new File(dockerDir, "assembly.xml"), "assembly.xml", initializeModel(request));
 
         final File inputFile = new File(dir, "pom.xml");
-        final File tempOutputFile = new File(dir, "pom_tmp.xml");
+        final File tempOutputFile1 = new File(dir, "pom_tmp1.xml");
+        final File tempOutputFile2 = new File(dir, "pom_tmp2.xml");
 
         try {
             final InputStream is = new FileInputStream(inputFile);
-            final OutputStream os = new FileOutputStream(tempOutputFile);
+            final OutputStream os = new FileOutputStream(tempOutputFile1);
             MavenModelUtils.addDockerPlugin(request.getArtifactId(), dockerHubOrg, is, os);
+
+            MavenModelUtils.addSurefirePlugin(new FileInputStream(tempOutputFile1), new FileOutputStream(tempOutputFile2));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
 
         inputFile.delete();
-        tempOutputFile.renameTo(inputFile);
-        tempOutputFile.delete();
+        tempOutputFile2.renameTo(inputFile);
+        tempOutputFile1.delete();
+        tempOutputFile2.delete();
 
         return rootDir;
 

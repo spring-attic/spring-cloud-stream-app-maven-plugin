@@ -16,23 +16,9 @@
 
 package org.springframework.cloud.stream.app.plugin;
 
-import static java.util.stream.Collectors.toList;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import io.spring.initializr.generator.ProjectRequest;
+import io.spring.initializr.metadata.Dependency;
+import io.spring.initializr.metadata.InitializrMetadata;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -41,16 +27,23 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-
 import org.springframework.cloud.stream.app.plugin.utils.MavenModelUtils;
 import org.springframework.cloud.stream.app.plugin.utils.SpringCloudStreamPluginUtils;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.CollectionUtils;
 
-import io.spring.initializr.generator.ProjectRequest;
-import io.spring.initializr.metadata.Dependency;
-import io.spring.initializr.metadata.InitializrMetadata;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Soby Chacko
@@ -162,7 +155,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                                 null;
 
                 if (generatedProjectHome != null && project != null) {
-                    moveProjectWithMavenModelsUpdated(entry.getKey(), project, generatedProjectHome);
+                    moveProjectWithMavenModelsUpdated(entry.getKey(), project, generatedProjectHome, value.isTestsIgnored());
                 }
                 else if (project != null) {
                     //no user provided generated project home, fall back to the default used by the Initailzr
@@ -180,9 +173,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
     }
 
     private String getPackageName(String artifactId) {
-        int countSep = StringUtils.countMatches(artifactId, "-");
         String[] strings = Stream.of(artifactId.split("-"))
-                .limit(countSep)
                 .toArray(String[]::new);
 
         String join = StringUtils.join(strings, ".");
@@ -239,7 +230,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
     }
 
     private void moveProjectWithMavenModelsUpdated(String key, File project,
-                                                   File generatedProjectHome) throws IOException, XmlPullParserException {
+                                                   File generatedProjectHome, boolean testIgnored) throws IOException, XmlPullParserException {
 
         Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(generatedProjectHome.getName(),
                 getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT")
@@ -255,7 +246,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
             removeExistingContent(Paths.get(generatedAppHome));
 
             Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
-            SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
+            if (testIgnored) {
+                SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
+            }
         }
         catch (IOException e) {
             getLog().error("Error during plugin execution", e);
