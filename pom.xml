@@ -36,9 +36,9 @@
     </dependency>
 
     <dependency>
-      <groupId>io.spring.initalizr</groupId>
+      <groupId>io.spring.initializr</groupId>
       <artifactId>initializr-generator</artifactId>
-      <version>1.0.0.BUILD-SNAPSHOT</version>
+      <version>0.1.0.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
