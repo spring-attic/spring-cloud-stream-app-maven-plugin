@@ -108,6 +108,10 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                         deps.add(binderDep);
                         artifactIds.add(binderArtifactId);
                     }
+                    if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
+                        deps.add(getDependency("app-starters-test-support", "org.springframework.cloud.stream.app"));
+                        artifactIds.add("app-starters-test-support");
+                    }
                     Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
                     String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
                     List<Repository> extraReposToAdd = new ArrayList<>();
@@ -170,6 +174,15 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
                             Files.copy(readmePath, Paths.get(generatedAppHome, "README.adoc"));
                         }
                     }
+                    if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
+                        String s = StringUtils.removeAndHump(entry.getKey(), "-");
+                        String s1 = StringUtils.capitalizeFirstLetter(s);
+                        String clazzInfo = "classes = {\n" +
+                                "\t\t" + value.getExtraTestConfigClass() + ",\n" +
+                                "\t\t" + s1 + "Application.class" + " }";
+                        SpringCloudStreamPluginUtils.addExtraTestConfig(generatedAppHome, clazzInfo);
+                    }
+                    addCopyrightToJavaFiles(generatedAppHome);
                 }
                 else if (project != null) {
                     //no user provided generated project home, fall back to the default used by the Initailzr
@@ -180,6 +193,20 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
         catch (IOException | XmlPullParserException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private void addCopyrightToJavaFiles(String generatedAppHome) throws IOException {
+        Stream<Path> javaStream =
+                Files.find(Paths.get(generatedAppHome), 20,
+                        (path, attr) -> String.valueOf(path).endsWith(".java"));
+
+        javaStream.forEach(p -> {
+            try {
+                SpringCloudStreamPluginUtils.addCopyRight(p);
+            } catch (IOException e) {
+                getLog().warn("Issues adding copyright", e);
+            }
+        });
     }
 
     private String getStarterArtifactId(GeneratableApp value, String appArtifactId) {

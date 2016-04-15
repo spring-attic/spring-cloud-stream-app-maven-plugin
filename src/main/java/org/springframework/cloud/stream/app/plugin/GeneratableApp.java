@@ -20,6 +20,16 @@ public class GeneratableApp {
 
     boolean testsIgnored;
 
+    String extraTestConfigClass;
+
+    public String getExtraTestConfigClass() {
+        return extraTestConfigClass;
+    }
+
+    public void setExtraTestConfigClass(String extraTestConfigClass) {
+        this.extraTestConfigClass = extraTestConfigClass;
+    }
+
     public boolean isTestsIgnored() {
         return testsIgnored;
     }
