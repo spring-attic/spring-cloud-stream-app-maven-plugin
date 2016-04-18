@@ -64,10 +64,16 @@ public class SpringCloudStreamAppMojoTest {
         generatedProjectVersion.setAccessible(true);
         ReflectionUtils.setField(generatedProjectVersion, springCloudStreamAppMojo, "1.0.0.BUILD-SNAPSHOT");
 
+        Field binders = mojoClazz.getDeclaredField("binders");
+        binders.setAccessible(true);
+        Map<String, String> binders1 = new HashMap<>();
+        binders1.put("kafka", "");
+        ReflectionUtils.setField(binders, springCloudStreamAppMojo, binders1);
+
         Field generatedApps = mojoClazz.getDeclaredField("generatedApps");
         generatedApps.setAccessible(true);
         Map<String, GeneratableApp> generatableApps = new HashMap<>();
-        generatableApps.put("foo-source-kafka", new GeneratableApp());
+        generatableApps.put("foo-source", new GeneratableApp());
         ReflectionUtils.setField(generatedApps, springCloudStreamAppMojo, generatableApps);
 
         org.springframework.cloud.stream.app.plugin.Dependency bom = new org.springframework.cloud.stream.app.plugin.Dependency();

@@ -51,337 +51,296 @@ import static java.util.stream.Collectors.toList;
 @Mojo(name = "generate-app")
 public class SpringCloudStreamAppMojo extends AbstractMojo {
 
-    private static final String SPRING_CLOUD_STREAM_BINDER_GROUP_ID = "org.springframework.cloud";
+	private static final String SPRING_CLOUD_STREAM_BINDER_GROUP_ID = "org.springframework.cloud";
 
-    @Parameter
-    private Map<String, GeneratableApp> generatedApps;
+	@Parameter
+	private Map<String, GeneratableApp> generatedApps;
 
-    @Parameter
-    private org.springframework.cloud.stream.app.plugin.Dependency bom;
+	@Parameter
+	private org.springframework.cloud.stream.app.plugin.Dependency bom;
 
-    @Parameter
-    private String generatedProjectHome;
+	@Parameter
+	private String generatedProjectHome;
 
-    @Parameter
-    private String javaVersion;
+	@Parameter
+	private String javaVersion;
 
-    @Parameter
-    private String generatedProjectVersion;
+	@Parameter
+	private String generatedProjectVersion;
 
-    @Parameter
-    private String applicationType;
+	@Parameter
+	private String applicationType;
 
-    @Parameter
-    private List<Repository> extraRepositories;
+	@Parameter
+	private List<Repository> extraRepositories;
 
-    private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
+	@Parameter
+	private Map<String, String> binders = new HashMap<>();
 
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        projectGenerator.setDockerHubOrg("springcloud" + applicationType);
+	private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
-        final InitializrDelegate initializrDelegate = new InitializrDelegate();
-        final String generatedAppGroupId = getApplicationGroupId(applicationType);
+	public void execute() throws MojoExecutionException, MojoFailureException {
 
-        initializrDelegate.prepareProjectGenerator();
+		for (String b : binders.keySet()) {
+			System.out.println("soby foo" + b);
+		}
 
-        try {
-            for (Map.Entry<String, GeneratableApp> entry : generatedApps.entrySet()) {
-                GeneratableApp value = entry.getValue();
-                List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies = value.getDependencies();
-                File project;
-                if (dependencies == null) {
-                    //No dependencies provided. Fall back to default mechanism and ignore any other attribute provided by the user
-                    //This is specifically for the spring cloud stream app use cases. We expect the convention of
-                    //<technology>-<source>|<sink>|...-<binder-type>
+		projectGenerator.setDockerHubOrg("springcloud" + applicationType);
 
-                    List<Dependency> deps = new ArrayList<>();
-                    List<String> artifactIds = new ArrayList<>();
+		final InitializrDelegate initializrDelegate = new InitializrDelegate();
+		final String generatedAppGroupId = getApplicationGroupId(applicationType);
 
-                    String appArtifactId = entry.getKey();
-                    String starterArtifactId = getStarterArtifactId(value, appArtifactId);
-                    Dependency starterDep = getDependency(starterArtifactId, generatedAppGroupId);
-                    deps.add(starterDep);
-                    artifactIds.add(starterArtifactId);
-                    if (applicationType.equals("stream")){ //TODO: convert enum
-                        String binderArtifactId = constructBinderArtifact(appArtifactId);
-                        Dependency binderDep = getDependency(binderArtifactId, SPRING_CLOUD_STREAM_BINDER_GROUP_ID);
-                        deps.add(binderDep);
-                        artifactIds.add(binderArtifactId);
-                    }
-                    if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
-                        deps.add(getDependency("app-starters-test-support", "org.springframework.cloud.stream.app"));
-                        artifactIds.add("app-starters-test-support");
-                    }
-                    Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
-                    String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
-                    List<Repository> extraReposToAdd = new ArrayList<>();
-                    List<String> extraRepoIds = value.extraRepository;
-                    if (!CollectionUtils.isEmpty(extraRepositories) && !CollectionUtils.isEmpty(extraRepoIds)) {
-                        extraReposToAdd = extraRepositories.stream().filter(e -> extraRepoIds.contains(e.getId()))
-                                .collect(Collectors.toList());
-                    }
-                    String[] repoIds = new String[]{};
-                    if(!CollectionUtils.isEmpty(extraRepoIds)) {
-                        repoIds = new String[extraRepoIds.size()];
-                        repoIds = extraRepoIds.toArray(repoIds);
-                    }
-                    InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
-                            .addRepositories(extraReposToAdd)
-                            .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion(), repoIds)
-                            .addJavaVersion(javaVersion)
-                            .addDependencyGroup(appArtifactId, depArray).build();
-                    initializrDelegate.applyMetadata(metadata);
-                    ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), generatedAppGroupId,
-                            getDescription(appArtifactId), getPackageName(appArtifactId),
-                            generatedProjectVersion, artifactNames);
-                    project = projectGenerator.doGenerateProjectStructure(projectRequest);
-                }
-                else {
-                    //user provided dependencies and other metadata
-                    String[] artifactNames = artifactNames(dependencies);
-                    Dependency[] artifacts = artifacts(dependencies);
+		initializrDelegate.prepareProjectGenerator();
 
-                    InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
-                            .addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion())
-                            .addJavaVersion(javaVersion)
-                            .addDependencyGroup(entry.getKey(), artifacts).build();
+		try {
+			for (Map.Entry<String, GeneratableApp> entry : generatedApps.entrySet()) {
+				for (String binder : binders.keySet()) {
+					GeneratableApp value = entry.getValue();
+					List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies = value.getDependencies();
+					File project;
 
-                    initializrDelegate.applyMetadata(metadata);
+					List<Dependency> deps = new ArrayList<>();
+					List<String> artifactIds = new ArrayList<>();
 
-                    ProjectRequest projectRequest = initializrDelegate.getProjectRequest(entry.getKey(), value.getGroupId(),
-                            value.getDescription(), value.getPackageName(), generatedProjectVersion, artifactNames);
-                    project = projectGenerator.doGenerateProjectStructure(projectRequest);
-                }
+					String appArtifactId = entry.getKey() + "-" + binder;
+					String starterArtifactId = getStarterArtifactId(value, appArtifactId);
+					Dependency starterDep = getDependency(starterArtifactId, generatedAppGroupId);
+					deps.add(starterDep);
+					artifactIds.add(starterArtifactId);
+					if (applicationType.equals("stream")) { //TODO: convert enum
+						String binderArtifactId = constructBinderArtifact(binder);
+						Dependency binderDep = getDependency(binderArtifactId, SPRING_CLOUD_STREAM_BINDER_GROUP_ID);
+						deps.add(binderDep);
+						artifactIds.add(binderArtifactId);
+					}
+					if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
+						deps.add(getDependency("app-starters-test-support", "org.springframework.cloud.stream.app"));
+						artifactIds.add("app-starters-test-support");
+					}
+					Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
+					String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
+					List<Repository> extraReposToAdd = new ArrayList<>();
+					List<String> extraRepoIds = value.extraRepository;
+					if (!CollectionUtils.isEmpty(extraRepositories) && !CollectionUtils.isEmpty(extraRepoIds)) {
+						extraReposToAdd = extraRepositories.stream().filter(e -> extraRepoIds.contains(e.getId()))
+								.collect(Collectors.toList());
+					}
+					String[] repoIds = new String[]{};
+					if (!CollectionUtils.isEmpty(extraRepoIds)) {
+						repoIds = new String[extraRepoIds.size()];
+						repoIds = extraRepoIds.toArray(repoIds);
+					}
+					InitializrMetadata metadata = SpringCloudStreamAppMetadataBuilder.withDefaults()
+							.addRepositories(extraReposToAdd)
+							.addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion(), repoIds)
+							.addJavaVersion(javaVersion)
+							.addDependencyGroup(appArtifactId, depArray).build();
+					initializrDelegate.applyMetadata(metadata);
+					ProjectRequest projectRequest = initializrDelegate.getProjectRequest(appArtifactId, generatedAppGroupId,
+							getDescription(appArtifactId), getPackageName(appArtifactId),
+							generatedProjectVersion, artifactNames);
+					project = projectGenerator.doGenerateProjectStructure(projectRequest);
 
-                File generatedProjectHome = StringUtils.isNotEmpty(this.generatedProjectHome) ?
-                        new File(this.generatedProjectHome) :
-                        StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
-                                null;
 
-                if (generatedProjectHome != null && project != null) {
-                    String generatedAppHome = moveProjectWithMavenModelsUpdated(entry.getKey(), project, generatedProjectHome, value.isTestsIgnored());
-                    Stream<Path> pathStream =
-                            Files.find(Paths.get(System.getProperty("user.dir")), 3,
-                                    (path, attr) -> String.valueOf(path).contains(getStarterArtifactId(value, entry.getKey())));
+					File generatedProjectHome = StringUtils.isNotEmpty(this.generatedProjectHome) ?
+							new File(this.generatedProjectHome) :
+							StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
+									null;
 
-                    Optional<Path> first = pathStream.findFirst();
-                    if(first.isPresent()) {
-                        Path path = first.get();
+					if (generatedProjectHome != null && project != null) {
+						String generatedAppHome = moveProjectWithMavenModelsUpdated(appArtifactId, project, generatedProjectHome, value.isTestsIgnored());
+						Stream<Path> pathStream =
+								Files.find(Paths.get(System.getProperty("user.dir")), 3,
+										(path, attr) -> String.valueOf(path).contains(getStarterArtifactId(value, appArtifactId)));
 
-                        Path readmePath = Paths.get(path.toString(), "README.adoc");
-                        File readmeDoc = readmePath.toFile();
-                        if (readmeDoc.exists()) {
-                            Files.copy(readmePath, Paths.get(generatedAppHome, "README.adoc"));
-                        }
-                    }
-                    if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
-                        String s = StringUtils.removeAndHump(entry.getKey(), "-");
-                        String s1 = StringUtils.capitalizeFirstLetter(s);
-                        String clazzInfo = "classes = {\n" +
-                                "\t\t" + value.getExtraTestConfigClass() + ",\n" +
-                                "\t\t" + s1 + "Application.class" + " }";
-                        SpringCloudStreamPluginUtils.addExtraTestConfig(generatedAppHome, clazzInfo);
-                    }
-                    addCopyrightToJavaFiles(generatedAppHome);
-                }
-                else if (project != null) {
-                    //no user provided generated project home, fall back to the default used by the Initailzr
-                    getLog().info("Project is generated at " + project.toString());
-                }
-            }
-        }
-        catch (IOException | XmlPullParserException e) {
-            throw new IllegalStateException(e);
-        }
-    }
+						Optional<Path> first = pathStream.findFirst();
+						if (first.isPresent()) {
+							Path path = first.get();
 
-    private void addCopyrightToJavaFiles(String generatedAppHome) throws IOException {
-        Stream<Path> javaStream =
-                Files.find(Paths.get(generatedAppHome), 20,
-                        (path, attr) -> String.valueOf(path).endsWith(".java"));
+							Path readmePath = Paths.get(path.toString(), "README.adoc");
+							File readmeDoc = readmePath.toFile();
+							if (readmeDoc.exists()) {
+								Files.copy(readmePath, Paths.get(generatedAppHome, "README.adoc"));
+							}
+						}
+						if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
+							String s = StringUtils.removeAndHump(appArtifactId, "-");
+							String s1 = StringUtils.capitalizeFirstLetter(s);
+							String clazzInfo = "classes = {\n" +
+									"\t\t" + value.getExtraTestConfigClass() + ",\n" +
+									"\t\t" + s1 + "Application.class" + " }";
+							SpringCloudStreamPluginUtils.addExtraTestConfig(generatedAppHome, clazzInfo);
+						}
+						addCopyrightToJavaFiles(generatedAppHome);
+					} else if (project != null) {
+						//no user provided generated project home, fall back to the default used by the Initailzr
+						getLog().info("Project is generated at " + project.toString());
+					}
+				}
+			}
+		} catch (IOException | XmlPullParserException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-        javaStream.forEach(p -> {
-            try {
-                SpringCloudStreamPluginUtils.addCopyRight(p);
-            } catch (IOException e) {
-                getLog().warn("Issues adding copyright", e);
-            }
-        });
-    }
+	private void addCopyrightToJavaFiles(String generatedAppHome) throws IOException {
+		Stream<Path> javaStream =
+				Files.find(Paths.get(generatedAppHome), 20,
+						(path, attr) -> String.valueOf(path).endsWith(".java"));
 
-    private String getStarterArtifactId(GeneratableApp value, String appArtifactId) {
-        return StringUtils.isEmpty(value.getStarterArtifactSuffix()) ?
+		javaStream.forEach(p -> {
+			try {
+				SpringCloudStreamPluginUtils.addCopyRight(p);
+			} catch (IOException e) {
+				getLog().warn("Issues adding copyright", e);
+			}
+		});
+	}
+
+	private String getStarterArtifactId(GeneratableApp value, String appArtifactId) {
+		return StringUtils.isEmpty(value.getStarterArtifactSuffix()) ?
 				constructStarterArtifactId(appArtifactId) : "spring-cloud-starter-stream-" + value.getStarterArtifactSuffix();
-    }
+	}
 
-    private static String getApplicationGroupId(String applicationType) {
-        return String.format("%s.%s.%s", "org.springframework.cloud", applicationType, "app");
-    }
+	private static String getApplicationGroupId(String applicationType) {
+		return String.format("%s.%s.%s", "org.springframework.cloud", applicationType, "app");
+	}
 
-    private String getPackageName(String artifactId) {
-        String[] strings = Stream.of(artifactId.split("-"))
-                .toArray(String[]::new);
+	private String getPackageName(String artifactId) {
+		String[] strings = Stream.of(artifactId.split("-"))
+				.toArray(String[]::new);
 
-        String join = StringUtils.join(strings, ".");
-        return String.format("%s.%s", getApplicationGroupId(applicationType), join);
-    }
+		String join = StringUtils.join(strings, ".");
+		return String.format("%s.%s", getApplicationGroupId(applicationType), join);
+	}
 
-    private String getDescription(String artifactId) {
-        String[] strings = Stream.of(artifactId.split("-"))
-                .map(StringUtils::capitalizeFirstLetter)
-                .toArray(String[]::new);
-        String join = StringUtils.join(strings, " ");
-        String appSuffix = applicationType.equals("stream") ? "Binder Application" : "Application";
-        return String.format("%s %s %s %s", "Spring Cloud", StringUtils.capitalizeFirstLetter(applicationType),
-                join, appSuffix);
-    }
+	private String getDescription(String artifactId) {
+		String[] strings = Stream.of(artifactId.split("-"))
+				.map(StringUtils::capitalizeFirstLetter)
+				.toArray(String[]::new);
+		String join = StringUtils.join(strings, " ");
+		String appSuffix = applicationType.equals("stream") ? "Binder Application" : "Application";
+		return String.format("%s %s %s %s", "Spring Cloud", StringUtils.capitalizeFirstLetter(applicationType),
+				join, appSuffix);
+	}
 
-    private Dependency getDependency(String s, String groupId) {
-        Dependency dependency = new Dependency();
-        dependency.setId(s);
-        dependency.setGroupId(groupId);
-        dependency.setArtifactId(s);
-        dependency.setBom(bom.getName());
-        return dependency;
-    }
+	private Dependency getDependency(String s, String groupId) {
+		Dependency dependency = new Dependency();
+		dependency.setId(s);
+		dependency.setGroupId(groupId);
+		dependency.setArtifactId(s);
+		dependency.setBom(bom.getName());
+		return dependency;
+	}
 
-    private String constructStarterArtifactId(String artifactId) {
-        int countSep = StringUtils.countMatches(artifactId, "-");
-        List<String> s = new ArrayList<>();
-        //stream app starters follow a specific naming pattern - for ex: spring-cloud-starter-source-time-kafka
-        //but the artifact id is time-source-kafka
-        if (applicationType.equals("stream")) {
-            Stream.of(artifactId.split("-"))
-                    .limit(countSep)
-                    .collect(Collectors.toCollection(LinkedList::new))
-                    .descendingIterator()
-                    .forEachRemaining(s::add);
-        }
-        else {
-            s.addAll(Stream.of(artifactId.split("-"))
-                    .limit(countSep)
-                    .collect(toList()));
-        }
+	private String constructStarterArtifactId(String artifactId) {
+		int countSep = StringUtils.countMatches(artifactId, "-");
+		List<String> s = new ArrayList<>();
+		//stream app starters follow a specific naming pattern - for ex: spring-cloud-starter-source-time-kafka
+		//but the artifact id is time-source-kafka
+		if (applicationType.equals("stream")) {
+			Stream.of(artifactId.split("-"))
+					.limit(countSep)
+					.collect(Collectors.toCollection(LinkedList::new))
+					.descendingIterator()
+					.forEachRemaining(s::add);
+		} else {
+			s.addAll(Stream.of(artifactId.split("-"))
+					.limit(countSep)
+					.collect(toList()));
+		}
 
-        String collect = s.stream().collect(Collectors.joining("-"));
-        return String.format("%s-%s-%s", "spring-cloud-starter", applicationType, collect);
-    }
+		String collect = s.stream().collect(Collectors.joining("-"));
+		return String.format("%s-%s-%s", "spring-cloud-starter", applicationType, collect);
+	}
 
-    private String constructBinderArtifact(String artifactId) {
-        int countSep = StringUtils.countMatches(artifactId, "-");
-        Optional<String> first = Stream.of(artifactId.split("-"))
-                .skip(countSep)
-                .findFirst();
-        return String.format("%s-%s", "spring-cloud-stream-binder", first.get());
-    }
+	private String constructBinderArtifact(String binder) {
+		return String.format("%s-%s", "spring-cloud-stream-binder", binder);
+	}
 
-    private String moveProjectWithMavenModelsUpdated(String key, File project,
-                                                   File generatedProjectHome, boolean testIgnored) throws IOException, XmlPullParserException {
+	private String moveProjectWithMavenModelsUpdated(String key, File project,
+													 File generatedProjectHome, boolean testIgnored) throws IOException, XmlPullParserException {
 
-        Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(generatedProjectHome.getName(),
-                getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT")
-                : MavenModelUtils.getModelFromContainerPom(generatedProjectHome, getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT");
+		Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(generatedProjectHome.getName(),
+				getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT")
+				: MavenModelUtils.getModelFromContainerPom(generatedProjectHome, getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT");
 
-        if (model != null && MavenModelUtils.addModuleIntoModel(model, key)) {
-            String containerPomFile = String.format("%s/%s", generatedProjectHome, "pom.xml");
-            MavenModelUtils.writeModelToFile(model, new FileOutputStream(containerPomFile));
-        }
+		if (model != null && MavenModelUtils.addModuleIntoModel(model, key)) {
+			String containerPomFile = String.format("%s/%s", generatedProjectHome, "pom.xml");
+			MavenModelUtils.writeModelToFile(model, new FileOutputStream(containerPomFile));
+		}
 
-        try {
-            String generatedAppHome = String.format("%s/%s", generatedProjectHome, key);
-            removeExistingContent(Paths.get(generatedAppHome));
+		try {
+			String generatedAppHome = String.format("%s/%s", generatedProjectHome, key);
+			removeExistingContent(Paths.get(generatedAppHome));
 
-            Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
-            if (testIgnored) {
-                SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
-            }
-            MavenModelUtils.addModuleInfoToContainerPom(generatedProjectHome);
-            return generatedAppHome;
-        }
-        catch (IOException e) {
-            getLog().error("Error during plugin execution", e);
-            throw new IllegalStateException(e);
-        }
-    }
+			Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
+			if (testIgnored) {
+				SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
+			}
+			MavenModelUtils.addModuleInfoToContainerPom(generatedProjectHome);
+			return generatedAppHome;
+		} catch (IOException e) {
+			getLog().error("Error during plugin execution", e);
+			throw new IllegalStateException(e);
+		}
+	}
 
-    private boolean isNewDir(File genProjecthome) {
-        return (!genProjecthome.exists() && genProjecthome.mkdir());
-    }
+	private boolean isNewDir(File genProjecthome) {
+		return (!genProjecthome.exists() && genProjecthome.mkdir());
+	}
 
-    private Dependency[] artifacts(List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies) {
-        return dependencies.stream()
-                .map(org.springframework.cloud.stream.app.plugin.Dependency::toInitializerMetadataDependency)
-                .collect(toList())
-                .stream()
-                .map(d -> {
-                    d.setBom(bom.getName());
-                    return d;
-                })
-                .collect(toList())
-                .stream()
-                .toArray(Dependency[]::new);
-    }
+	private void removeExistingContent(Path path) {
+		if (path.toFile().exists()) {
+			try {
+				SpringCloudStreamPluginUtils.cleanupGenProjHome(path.toFile());
+			} catch (IOException e) {
+				getLog().error("Error", e);
+				throw new IllegalStateException(e);
+			}
+		}
+	}
 
-    private String[] artifactNames(List<org.springframework.cloud.stream.app.plugin.Dependency> dependencies) {
-        return dependencies.stream()
-                .map(org.springframework.cloud.stream.app.plugin.Dependency::getArtifactId)
-                .collect(toList())
-                .stream()
-                .toArray(String[]::new);
-    }
+	private class InitializrDelegate {
 
-    private void removeExistingContent(Path path) {
-        if (path.toFile().exists()) {
-            try {
-                SpringCloudStreamPluginUtils.cleanupGenProjHome(path.toFile());
-            }
-            catch (IOException e) {
-                getLog().error("Error", e);
-                throw new IllegalStateException(e);
-            }
-        }
-    }
+		private void applyMetadata(final InitializrMetadata metadata) {
+			projectGenerator.setMetadataProvider(() -> metadata);
+		}
 
-    private class InitializrDelegate {
+		private ProjectRequest getProjectRequest(String generatedArtifactId, String generatedAppGroupId,
+												 String description, String packageName, String version,
+												 String... artifactNames) {
+			ProjectRequest projectRequest = createProjectRequest(artifactNames);
+			projectRequest.setBaseDir(generatedArtifactId);
 
-        private void applyMetadata(final InitializrMetadata metadata) {
-            projectGenerator.setMetadataProvider(() -> metadata);
-        }
+			projectRequest.setGroupId(generatedAppGroupId);
+			projectRequest.setArtifactId(generatedArtifactId);
+			projectRequest.setName(generatedArtifactId);
+			projectRequest.setDescription(description);
+			projectRequest.setPackageName(packageName);
+			projectRequest.setVersion(version);
+			return projectRequest;
+		}
 
-        private ProjectRequest getProjectRequest(String generatedArtifactId, String generatedAppGroupId,
-                                                 String description, String packageName, String version,
-                                                 String... artifactNames) {
-            ProjectRequest projectRequest = createProjectRequest(artifactNames);
-            projectRequest.setBaseDir(generatedArtifactId);
+		private ProjectRequest createProjectRequest(String... styles) {
+			ProjectRequest request = new ProjectRequest();
+			request.initialize(projectGenerator.getMetadataProvider().get());
+			request.getStyle().addAll(Arrays.asList(styles));
+			return request;
+		}
 
-            projectRequest.setGroupId(generatedAppGroupId);
-            projectRequest.setArtifactId(generatedArtifactId);
-            projectRequest.setName(generatedArtifactId);
-            projectRequest.setDescription(description);
-            projectRequest.setPackageName(packageName);
-            projectRequest.setVersion(version);
-            return projectRequest;
-        }
+		private void prepareProjectGenerator() {
+			String tmpdir = System.getProperty("java.io.tmpdir");
+			projectGenerator.setTmpdir(tmpdir);
+			projectGenerator.setEventPublisher(new ApplicationEventPublisher() {
+				public void publishEvent(ApplicationEvent applicationEvent) {
+					getLog().debug("Generated project : " + applicationEvent.toString());
+				}
 
-        private ProjectRequest createProjectRequest(String... styles) {
-            ProjectRequest request = new ProjectRequest();
-            request.initialize(projectGenerator.getMetadataProvider().get());
-            request.getStyle().addAll(Arrays.asList(styles));
-            return request;
-        }
-
-        private void prepareProjectGenerator() {
-            String tmpdir = System.getProperty("java.io.tmpdir");
-            projectGenerator.setTmpdir(tmpdir);
-            projectGenerator.setEventPublisher(new ApplicationEventPublisher() {
-                public void publishEvent(ApplicationEvent applicationEvent) {
-                    getLog().debug("Generated project : " + applicationEvent.toString());
-                }
-
-                public void publishEvent(Object o) {
-                    getLog().debug("Generated project : " + o.toString());
-                }
-            });
-        }
-    }
+				public void publishEvent(Object o) {
+					getLog().debug("Generated project : " + o.toString());
+				}
+			});
+		}
+	}
 }
