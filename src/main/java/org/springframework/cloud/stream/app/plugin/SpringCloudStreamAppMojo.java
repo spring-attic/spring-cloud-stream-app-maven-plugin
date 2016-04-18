@@ -81,10 +81,6 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
-		for (String b : binders.keySet()) {
-			System.out.println("soby foo" + b);
-		}
-
 		projectGenerator.setDockerHubOrg("springcloud" + applicationType);
 
 		final InitializrDelegate initializrDelegate = new InitializrDelegate();
