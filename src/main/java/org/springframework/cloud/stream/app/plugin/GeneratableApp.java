@@ -7,7 +7,6 @@ import java.util.List;
  */
 public class GeneratableApp {
 
-    List<Dependency> dependencies;
     List<String> extraRepository;
 
     String groupId;
@@ -36,14 +35,6 @@ public class GeneratableApp {
 
     public void setTestsIgnored(boolean testsIgnored) {
         this.testsIgnored = testsIgnored;
-    }
-
-    public List<Dependency> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies(List<Dependency> dependencies) {
-        this.dependencies = dependencies;
     }
 
     public List<String> getExtraRepository() {
@@ -90,8 +81,7 @@ public class GeneratableApp {
     @Override
     public String toString() {
         return "GeneratableApp{" +
-                "dependencies=" + dependencies +
-                ", groupId='" + groupId + '\'' +
+                "groupId='" + groupId + '\'' +
                 ", description='" + description + '\'' +
                 ", packageName='" + packageName + '\'' +
                 '}';

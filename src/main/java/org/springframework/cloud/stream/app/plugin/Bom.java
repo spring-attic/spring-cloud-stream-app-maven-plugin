@@ -20,7 +20,7 @@ package org.springframework.cloud.stream.app.plugin;
 /**
  * @author Soby Chacko
  */
-public class Dependency {
+public class Bom {
 
     private String groupId;
     private String artifactId;
@@ -69,7 +69,7 @@ public class Dependency {
 
     @Override
     public String toString() {
-        return "Dependency{" +
+        return "Bom{" +
                 "groupId='" + groupId + '\'' +
                 ", artifactId='" + artifactId + '\'' +
                 ", name='" + name + '\'' +

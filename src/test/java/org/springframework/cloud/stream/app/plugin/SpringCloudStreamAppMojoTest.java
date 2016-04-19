@@ -76,7 +76,7 @@ public class SpringCloudStreamAppMojoTest {
         generatableApps.put("foo-source", new GeneratableApp());
         ReflectionUtils.setField(generatedApps, springCloudStreamAppMojo, generatableApps);
 
-        org.springframework.cloud.stream.app.plugin.Dependency bom = new org.springframework.cloud.stream.app.plugin.Dependency();
+        Bom bom = new Bom();
         bom.setArtifactId("spring-cloud-stream-app-dependencies");
         bom.setGroupId("org.springframework.cloud.stream.app");
         bom.setVersion("1.0.0.BUILD-SNAPSHOT");
@@ -105,7 +105,7 @@ public class SpringCloudStreamAppMojoTest {
     }
 
     @Test
-    public void testProjectCreatedIntoGeneartedProjectHome() throws Exception {
+    public void testProjectCreatedIntoGeneratedProjectHome() throws Exception {
         String projectHome = "/tmp/apps";
         Field generatedProjectHome = mojoClazz.getDeclaredField("generatedProjectHome");
         generatedProjectHome.setAccessible(true);
