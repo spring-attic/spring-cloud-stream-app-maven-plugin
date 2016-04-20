@@ -100,6 +100,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
 	private void generateApp(InitializrDelegate initializrDelegate,
 							 Map.Entry<String, GeneratableApp> entry, String appType) throws IOException, XmlPullParserException {
+
 		GeneratableApp value = entry.getValue();
 		final String generatedAppGroupId = getApplicationGroupId(applicationType);
 
@@ -124,7 +125,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
 		String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
 		List<Repository> extraReposToAdd = new ArrayList<>();
-		List<String> extraRepoIds = value.extraRepository;
+		Set<String> extraRepoIds = value.getExtraRepositories().keySet();
 		if (!CollectionUtils.isEmpty(extraRepositories) && !CollectionUtils.isEmpty(extraRepoIds)) {
 			extraReposToAdd = extraRepositories.stream().filter(e -> extraRepoIds.contains(e.getId()))
 					.collect(Collectors.toList());

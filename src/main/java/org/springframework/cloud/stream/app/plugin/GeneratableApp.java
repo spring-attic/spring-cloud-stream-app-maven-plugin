@@ -1,13 +1,14 @@
 package org.springframework.cloud.stream.app.plugin;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Soby Chacko
  */
 public class GeneratableApp {
 
-    List<String> extraRepository;
+    private Map<String, String> extraRepositories = new HashMap<>();
 
     String groupId;
 
@@ -35,14 +36,6 @@ public class GeneratableApp {
 
     public void setTestsIgnored(boolean testsIgnored) {
         this.testsIgnored = testsIgnored;
-    }
-
-    public List<String> getExtraRepository() {
-        return extraRepository;
-    }
-
-    public void setExtraRepository(List<String> extraRepository) {
-        this.extraRepository = extraRepository;
     }
 
     public String getGroupId() {
@@ -77,6 +70,15 @@ public class GeneratableApp {
     public void setStarterArtifactSuffix(String starterArtifactSuffix) {
         this.starterArtifactSuffix = starterArtifactSuffix;
     }
+
+    public Map<String, String> getExtraRepositories() {
+        return extraRepositories;
+    }
+
+    public void setExtraRepositories(Map<String, String> extraRepositories) {
+        this.extraRepositories = extraRepositories;
+    }
+
 
     @Override
     public String toString() {
