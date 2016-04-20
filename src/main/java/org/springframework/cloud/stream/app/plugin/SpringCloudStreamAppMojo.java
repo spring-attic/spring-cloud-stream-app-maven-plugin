@@ -106,7 +106,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		List<Dependency> deps = new ArrayList<>();
 		List<String> artifactIds = new ArrayList<>();
 
-		String appArtifactId = entry.getKey() + "-" + appType;
+		String appArtifactId = !appType.equals("default") ? entry.getKey() + "-" + appType : entry.getKey();
 		String starterArtifactId = getStarterArtifactId(value, appArtifactId);
 		Dependency starterDep = getDependency(starterArtifactId, generatedAppGroupId);
 		deps.add(starterDep);
@@ -221,8 +221,11 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	}
 
 	private String getPackageName(String artifactId) {
-		String[] strings = Stream.of(artifactId.split("-"))
-				.toArray(String[]::new);
+		String[] strings = applicationType.equals("stream") ? Stream.of(artifactId.split("-"))
+				.toArray(String[]::new) :
+				Stream.of(artifactId.split("-"))
+						.limit(StringUtils.countMatches(artifactId, "-"))
+						.toArray(String[]::new);
 
 		String join = StringUtils.join(strings, ".");
 		return String.format("%s.%s", getApplicationGroupId(applicationType), join);
