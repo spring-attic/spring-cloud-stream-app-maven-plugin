@@ -16,11 +16,19 @@ public class GeneratableApp {
     String packageName;
     String generatedProjectHome;
 
-    String starterArtifactSuffix;
-
     boolean testsIgnored;
 
     String extraTestConfigClass;
+
+    String autoConfigClass;
+
+    public String getAutoConfigClass() {
+        return autoConfigClass;
+    }
+
+    public void setAutoConfigClass(String autoConfigClass) {
+        this.autoConfigClass = autoConfigClass;
+    }
 
     public String getExtraTestConfigClass() {
         return extraTestConfigClass;
@@ -63,14 +71,6 @@ public class GeneratableApp {
         this.packageName = packageName;
     }
 
-    public String getStarterArtifactSuffix() {
-        return starterArtifactSuffix;
-    }
-
-    public void setStarterArtifactSuffix(String starterArtifactSuffix) {
-        this.starterArtifactSuffix = starterArtifactSuffix;
-    }
-
     public Map<String, String> getExtraRepositories() {
         return extraRepositories;
     }
@@ -78,7 +78,6 @@ public class GeneratableApp {
     public void setExtraRepositories(Map<String, String> extraRepositories) {
         this.extraRepositories = extraRepositories;
     }
-
 
     @Override
     public String toString() {

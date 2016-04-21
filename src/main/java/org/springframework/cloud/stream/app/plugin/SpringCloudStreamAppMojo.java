@@ -108,7 +108,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		List<String> artifactIds = new ArrayList<>();
 
 		String appArtifactId = !appType.equals("default") ? entry.getKey() + "-" + appType : entry.getKey();
-		String starterArtifactId = getStarterArtifactId(value, appArtifactId);
+		String starterArtifactId = getStarterArtifactId(entry.getKey());
 		Dependency starterDep = getDependency(starterArtifactId, generatedAppGroupId);
 		deps.add(starterDep);
 		artifactIds.add(starterArtifactId);
@@ -151,7 +151,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 				StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
 						null;
 
-		postProcessGeneratedProject(value, appArtifactId, project, generatedProjectHome);
+		postProcessGeneratedProject(value, appArtifactId, project, generatedProjectHome, entry.getKey());
 	}
 
 	private List<String> getAppTypes() {
@@ -166,12 +166,12 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		return appTypes;
 	}
 
-	private void postProcessGeneratedProject(GeneratableApp value, String appArtifactId, File project, File generatedProjectHome) throws IOException, XmlPullParserException {
+	private void postProcessGeneratedProject(GeneratableApp value, String appArtifactId, File project, File generatedProjectHome, String origKey) throws IOException, XmlPullParserException {
 		if (generatedProjectHome != null && project != null) {
 			String generatedAppHome = moveProjectWithMavenModelsUpdated(appArtifactId, project, generatedProjectHome, value.isTestsIgnored());
 			Stream<Path> pathStream =
 					Files.find(Paths.get(System.getProperty("user.dir")), 3,
-							(path, attr) -> String.valueOf(path).contains(getStarterArtifactId(value, appArtifactId)));
+							(path, attr) -> String.valueOf(path).contains(getStarterArtifactId(origKey)));
 
 			Optional<Path> first = pathStream.findFirst();
 			if (first.isPresent()) {
@@ -191,6 +191,16 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 						"\t\t" + s1 + "Application.class" + " }";
 				SpringCloudStreamPluginUtils.addExtraTestConfig(generatedAppHome, clazzInfo);
 			}
+			//if (StringUtils.isNotEmpty(value.getAutoConfigClass())){
+				String s = StringUtils.removeAndHump(origKey, "-");
+				String s1 = StringUtils.capitalizeFirstLetter(s);
+
+				String subPackage = StringUtils.join(origKey.split("-"), ".");
+				String toBeImported = StringUtils.isEmpty(value.getAutoConfigClass()) ?
+						String.format("%s.%s.%sConfiguration.class", "org.springframework.cloud.stream.app", subPackage, s1)
+						: value.getAutoConfigClass();
+				SpringCloudStreamPluginUtils.addAutoConfigImport(generatedAppHome, toBeImported);
+			//}
 			addCopyrightToJavaFiles(generatedAppHome);
 		} else if (project != null) {
 			//no user provided generated project home, fall back to the default used by the Initializr
@@ -212,9 +222,21 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		});
 	}
 
-	private String getStarterArtifactId(GeneratableApp value, String appArtifactId) {
-		return StringUtils.isEmpty(value.getStarterArtifactSuffix()) ?
-				constructStarterArtifactId(appArtifactId) : "spring-cloud-starter-stream-" + value.getStarterArtifactSuffix();
+	private String getStarterArtifactId(String key) {
+		//time-source -> source-time
+		//groovy-filter-processor -> processor-groovy-filter
+		//scriptable-transform-processor -> processor-scriptable-transform
+		//timestamp-task -> task-timestamp
+
+		String[] tokens = key.split("-");
+		List<String> orderedStarterArtifactTokens = new ArrayList<>();
+		orderedStarterArtifactTokens.add(tokens[tokens.length-1]);
+		orderedStarterArtifactTokens.addAll(Stream.of(tokens)
+				.limit(tokens.length - 1)
+				.collect(toList()));
+
+		String collect = orderedStarterArtifactTokens.stream().collect(Collectors.joining("-"));
+		return String.format("%s-%s-%s", "spring-cloud-starter", applicationType, collect);
 	}
 
 	private static String getApplicationGroupId(String applicationType) {
@@ -249,27 +271,6 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		dependency.setArtifactId(s);
 		dependency.setBom(bom.getName());
 		return dependency;
-	}
-
-	private String constructStarterArtifactId(String artifactId) {
-		int countSep = StringUtils.countMatches(artifactId, "-");
-		List<String> s = new ArrayList<>();
-		//stream app starters follow a specific naming pattern - for ex: spring-cloud-starter-source-time-kafka
-		//but the artifact id is time-source-kafka
-		if (applicationType.equals("stream")) {
-			Stream.of(artifactId.split("-"))
-					.limit(countSep)
-					.collect(Collectors.toCollection(LinkedList::new))
-					.descendingIterator()
-					.forEachRemaining(s::add);
-		} else {
-			s.addAll(Stream.of(artifactId.split("-"))
-					.limit(countSep)
-					.collect(toList()));
-		}
-
-		String collect = s.stream().collect(Collectors.joining("-"));
-		return String.format("%s-%s-%s", "spring-cloud-starter", applicationType, collect);
 	}
 
 	private String constructBinderArtifact(String binder) {

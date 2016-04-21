@@ -103,7 +103,7 @@ public class SpringCloudStreamPluginUtils {
             File f1 = first.get();
             Files.readAllLines(f1.toPath()).forEach(l -> {
                 if (l.startsWith("@SpringApplicationConfiguration")) {
-                    sb.append("@SpringApplicationConfiguration(" + clazzInfo + ")");
+                    sb.append("@SpringApplicationConfiguration(").append(clazzInfo).append(")");
                 }
                 else {
                     sb.append(l);
@@ -112,5 +112,33 @@ public class SpringCloudStreamPluginUtils {
             });
             Files.write(f1.toPath(), sb.toString().getBytes());
         }
+    }
+
+    public static void addAutoConfigImport(String generatedAppHome, String autoConfigClazz) throws IOException {
+        String srcDir = String.format("%s/%s", generatedAppHome, "src/main/java");
+
+        Collection<File> files = FileUtils.listFiles(new File(srcDir), null, true);
+        Optional<File> first = files.stream()
+                .filter(f -> f.getName().endsWith("Application.java"))
+                .findFirst();
+
+        if (first.isPresent()){
+            StringBuilder sb = new StringBuilder();
+            File f1 = first.get();
+            Files.readAllLines(f1.toPath()).forEach(l -> {
+                if (l.startsWith("import org.springframework.boot.autoconfigure.SpringBootApplication;")) {
+                    sb.append(l).append("\n").append("import org.springframework.context.annotation.Import;\n");
+                }
+                else if (l.startsWith("@SpringBootApplication")) {
+                    sb.append(l).append("\n").append("@Import(").append(autoConfigClazz).append(")");
+                }
+                else {
+                    sb.append(l);
+                }
+                sb.append("\n");
+            });
+            Files.write(f1.toPath(), sb.toString().getBytes());
+        }
+
     }
 }
