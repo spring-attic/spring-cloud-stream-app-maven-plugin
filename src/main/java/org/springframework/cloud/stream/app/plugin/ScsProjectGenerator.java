@@ -40,7 +40,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
         try {
             final InputStream is = new FileInputStream(inputFile);
             final OutputStream os = new FileOutputStream(tempOutputFile1);
-            MavenModelUtils.addDockerPlugin(request.getArtifactId(), dockerHubOrg, is, os);
+            MavenModelUtils.addDockerPlugin(request.getArtifactId(), request.getVersion(), dockerHubOrg, is, os);
 
             MavenModelUtils.addSurefirePlugin(new FileInputStream(tempOutputFile1), new FileOutputStream(tempOutputFile2));
         } catch (IOException e) {

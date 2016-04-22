@@ -85,7 +85,7 @@ public class MavenModelUtils {
         return reader.read(new FileReader(pom));
     }
 
-    public static void addDockerPlugin(String artifactId, String dockerHubOrg, InputStream is, OutputStream os) throws IOException {
+    public static void addDockerPlugin(String artifactId, String version, String dockerHubOrg, InputStream is, OutputStream os) throws IOException {
         final MavenXpp3Reader reader = new MavenXpp3Reader();
 
         Model pomModel;
@@ -106,7 +106,12 @@ public class MavenModelUtils {
         final Xpp3Dom images = addElement(mavenPluginConfiguration, "images");
 
         final Xpp3Dom image = addElement(images, "image");
-        addElement(image, "name", dockerHubOrg + "/${project.artifactId}");
+        if (!version.endsWith("BUILD-SNAPSHOT")) {
+            addElement(image, "name", dockerHubOrg + "/${project.artifactId}:" + version);
+        }
+        else {
+            addElement(image, "name", dockerHubOrg + "/${project.artifactId}");
+        }
 
         final Xpp3Dom build = addElement(image, "build");
         addElement(build, "from", "anapsix/alpine-java:8");
