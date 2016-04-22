@@ -36,9 +36,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -293,7 +291,14 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			String generatedAppHome = String.format("%s/%s", generatedProjectHome, key);
 			removeExistingContent(Paths.get(generatedAppHome));
 
-			Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
+			try {
+				Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
+			}
+			catch (Exception e) {
+				if (!Paths.get(generatedAppHome).toFile().exists()) {
+					Files.copy(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
+				}
+			}
 			if (testIgnored) {
 				SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
 			}
