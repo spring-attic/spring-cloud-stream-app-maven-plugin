@@ -297,7 +297,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			if (testIgnored) {
 				SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
 			}
-			MavenModelUtils.addModuleInfoToContainerPom(generatedProjectHome);
+			//MavenModelUtils.addModuleInfoToContainerPom(generatedProjectHome);
 			return generatedAppHome;
 		} catch (IOException e) {
 			getLog().error("Error during plugin execution", e);
