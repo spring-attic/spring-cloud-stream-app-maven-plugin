@@ -228,7 +228,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
 		String[] tokens = key.split("-");
 		List<String> orderedStarterArtifactTokens = new ArrayList<>();
-		orderedStarterArtifactTokens.add(tokens[tokens.length-1]);
+		if (!applicationType.equals("task")) {
+			orderedStarterArtifactTokens.add(tokens[tokens.length - 1]);
+		}
 		orderedStarterArtifactTokens.addAll(Stream.of(tokens)
 				.limit(tokens.length - 1)
 				.collect(toList()));
