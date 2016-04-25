@@ -193,9 +193,17 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 				String s = StringUtils.removeAndHump(origKey, "-");
 				String s1 = StringUtils.capitalizeFirstLetter(s);
 
-				String subPackage = StringUtils.join(origKey.split("-"), ".");
-				String toBeImported = StringUtils.isEmpty(value.getAutoConfigClass()) ?
-						String.format("%s.%s.%sConfiguration.class", "org.springframework.cloud.stream.app", subPackage, s1)
+				//String subPackage = StringUtils.join(origKey.split("-"), ".");
+			String[] tokens = origKey.split("-");
+			List<String> orderedStarterArtifactTokens = new LinkedList<>();
+			int toLimit = applicationType.equals("task") ? tokens.length - 1 : tokens.length;
+			orderedStarterArtifactTokens.addAll(Stream.of(tokens)
+					.limit(toLimit)
+					.collect(toList()));
+			String subPackage = orderedStarterArtifactTokens.stream().collect(Collectors.joining("."));
+
+			String toBeImported = StringUtils.isEmpty(value.getAutoConfigClass()) ?
+						String.format("%s.%s.%s.%s.%sConfiguration.class", "org.springframework.cloud", applicationType, "app", subPackage, s1)
 						: value.getAutoConfigClass();
 				SpringCloudStreamPluginUtils.addAutoConfigImport(generatedAppHome, toBeImported);
 			//}
@@ -227,14 +235,13 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		//timestamp-task -> task-timestamp
 
 		String[] tokens = key.split("-");
-		List<String> orderedStarterArtifactTokens = new ArrayList<>();
+		List<String> orderedStarterArtifactTokens = new LinkedList<>();
 		if (!applicationType.equals("task")) {
 			orderedStarterArtifactTokens.add(tokens[tokens.length - 1]);
 		}
 		orderedStarterArtifactTokens.addAll(Stream.of(tokens)
 				.limit(tokens.length - 1)
 				.collect(toList()));
-
 		String collect = orderedStarterArtifactTokens.stream().collect(Collectors.joining("-"));
 		return String.format("%s-%s-%s", "spring-cloud-starter", applicationType, collect);
 	}
