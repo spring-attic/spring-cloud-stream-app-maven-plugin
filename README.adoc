@@ -5,34 +5,55 @@ Maven plugin for generating spring cloud stream applications from the spring-clo
 
 mvn clean package [Requires JDK 8]
 
-*Sample Configuration*
+*Sample Configuration for generating spring cloud stream apps*
+
+Full configuration for Spring Cloud Stream Apps can be found here:
+https://github.com/spring-cloud/spring-cloud-stream-app-starters/blob/master/spring-cloud-stream-app-generator/pom.xml
+
+and for Spring Cloud Task Apps it is at:
+
+https://github.com/spring-cloud/spring-cloud-task-app-starters/blob/master/spring-cloud-task-app-generator/pom.xml
 
 [source, xml]
 ----
-<plugin>
-				<groupId>org.springframework.cloud.stream.app.plugin</groupId>
-				<artifactId>spring-cloud-stream-app-maven-plugin</artifactId>
-				<version>1.0.0.BUILD-SNAPSHOT</version>
-				<configuration>
-					<generatedProjectHome>${session.executionRootDirectory}/apps</generatedProjectHome>
-					<generatedProjectVersion>${project.version}</generatedProjectVersion>
-					<applicationType>stream</applicationType>
-					<bom>
-						<name>scs-bom</name>
-						<groupId>org.springframework.cloud.stream.app</groupId>
-						<artifactId>spring-cloud-stream-app-dependencies</artifactId>
-						<version>1.0.0.BUILD-SNAPSHOT</version>
-					</bom>
+    <plugin>
+        <groupId>org.springframework.cloud.stream.app.plugin</groupId>
+        <artifactId>spring-cloud-stream-app-maven-plugin</artifactId>
+        <version>1.0.0.BUILD-SNAPSHOT</version>
+            <configuration>
+                <generatedProjectHome>/tmp</generatedProjectHome>
+                <generatedProjectVersion>${project.version}</generatedProjectVersion>
+                <applicationType>stream</applicationType>
+                <bom>
+                    <name>scs-bom</name>
+                    <groupId>org.springframework.cloud.stream.app</groupId>
+                    <artifactId>spring-cloud-stream-app-dependencies</artifactId>
+                    <version>1.0.0.BUILD-SNAPSHOT</version>
+                </bom>
 
-					<binders>
-                    						<kafka />
-                    						<rabbit />
-                    					</binders>
-                    					<generatedApps>
-
-                    					<time-source />
-                                        	<transform-processor />
-                                        	<trigger-source />
-                                        </generatedApps>
-                                        </plugin>
+                <binders>
+                    <kafka />
+                    <rabbit />
+                </binders>
+                <generatedApps>
+                <time-source />
+                    <transform-processor />
+                    <trigger-source />
+                    <file-sink />
+                </generatedApps>
+            </configuration>
+    </plugin>
 ----
+
+Binders are only applicable for spring cloud stream apps. They are not required for spring cloud task apps.
+
+Application type must be *stream* and *task* for stream and task apps respectively.
+
+The bom for stream apps are specified in spring-cloud-stream-app-dependencies
+(group id: org.springframework.cloud.stream.app)
+
+and for tasks it is spring-cloud-task-app-dependencies
+(group id: org.springframework.cloud.task.app).
+
+
+
