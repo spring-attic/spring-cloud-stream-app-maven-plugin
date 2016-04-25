@@ -28,7 +28,7 @@ https://github.com/spring-cloud/spring-cloud-task-app-starters/blob/master/sprin
                     <name>scs-bom</name>
                     <groupId>org.springframework.cloud.stream.app</groupId>
                     <artifactId>spring-cloud-stream-app-dependencies</artifactId>
-                    <version>1.0.0.BUILD-SNAPSHOT</version>
+                    <version>${project.version}</version>
                 </bom>
 
                 <binders>
@@ -49,7 +49,7 @@ Binders are only applicable for spring cloud stream apps. They are not required 
 
 Application type must be *stream* and *task* for stream and task apps respectively.
 
-The bom for stream apps are specified in spring-cloud-stream-app-dependencies
+The bom for stream apps is specified in spring-cloud-stream-app-dependencies
 (group id: org.springframework.cloud.stream.app)
 
 and for tasks it is spring-cloud-task-app-dependencies
