@@ -1,14 +1,14 @@
-# spring-cloud-stream-app-maven-plugin
+= spring-cloud-stream-app-maven-plugin
 Maven plugin for generating spring cloud stream applications from the spring-cloud-stream-app-starters repository
 
-** Build
+*Build*
 
 mvn clean package [Requires JDK 8]
 
-**Sample Configuration**
+*Sample Configuration*
 
-``xml
-
+[source, xml]
+----
 <plugin>
 				<groupId>org.springframework.cloud.stream.app.plugin</groupId>
 				<artifactId>spring-cloud-stream-app-maven-plugin</artifactId>
@@ -35,5 +35,4 @@ mvn clean package [Requires JDK 8]
                                         	<trigger-source />
                                         </generatedApps>
                                         </plugin>
-
-					``xml
+----
