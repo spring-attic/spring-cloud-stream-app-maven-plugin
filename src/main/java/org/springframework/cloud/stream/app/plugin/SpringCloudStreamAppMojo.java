@@ -291,14 +291,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			String generatedAppHome = String.format("%s/%s", generatedProjectHome, key);
 			removeExistingContent(Paths.get(generatedAppHome));
 
-			try {
-				Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
-			}
-			catch (Exception e) {
-				if (!Paths.get(generatedAppHome).toFile().exists()) {
-					Files.copy(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
-				}
-			}
+			Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
+
 			if (testIgnored) {
 				SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
 			}
