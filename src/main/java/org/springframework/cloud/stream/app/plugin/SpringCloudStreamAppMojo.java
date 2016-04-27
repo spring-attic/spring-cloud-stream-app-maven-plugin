@@ -305,6 +305,11 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
 			Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
 
+			File mvnw = new File(Paths.get(generatedAppHome).toFile(), "mvnw");
+			if (mvnw.exists()) {
+				mvnw.setExecutable(true);
+			}
+
 			if (testIgnored) {
 				SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
 			}
