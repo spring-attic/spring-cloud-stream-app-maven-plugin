@@ -149,7 +149,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 				StringUtils.isNotEmpty(value.getGeneratedProjectHome()) ? new File(value.generatedProjectHome) :
 						null;
 
-		postProcessGeneratedProject(value, appArtifactId, project, generatedProjectHome, entry.getKey());
+		postProcessGeneratedProject(value, appArtifactId, project, generatedProjectHome, entry.getKey(), generatedProjectVersion);
 	}
 
 	private List<String> getAppTypes() {
@@ -164,9 +164,11 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		return appTypes;
 	}
 
-	private void postProcessGeneratedProject(GeneratableApp value, String appArtifactId, File project, File generatedProjectHome, String origKey) throws IOException, XmlPullParserException {
+	private void postProcessGeneratedProject(GeneratableApp value, String appArtifactId, File project,
+											 File generatedProjectHome, String origKey, String generatedProjectVersion) throws IOException, XmlPullParserException {
 		if (generatedProjectHome != null && project != null) {
-			String generatedAppHome = moveProjectWithMavenModelsUpdated(appArtifactId, project, generatedProjectHome, value.isTestsIgnored());
+			String generatedAppHome = moveProjectWithMavenModelsUpdated(appArtifactId, project, generatedProjectHome,
+					value.isTestsIgnored(), generatedProjectVersion);
 			Stream<Path> pathStream =
 					Files.find(Paths.get(System.getProperty("user.dir")), 3,
 							(path, attr) -> String.valueOf(path).contains(getStarterArtifactId(origKey)));
@@ -285,11 +287,12 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	}
 
 	private String moveProjectWithMavenModelsUpdated(String key, File project,
-													 File generatedProjectHome, boolean testIgnored) throws IOException, XmlPullParserException {
+													 File generatedProjectHome, boolean testIgnored,
+													 String generatedProjectVersion) throws IOException, XmlPullParserException {
 
 		Model model = isNewDir(generatedProjectHome) ? MavenModelUtils.populateModel(generatedProjectHome.getName(),
-				getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT")
-				: MavenModelUtils.getModelFromContainerPom(generatedProjectHome, getApplicationGroupId(applicationType), "1.0.0.BUILD-SNAPSHOT");
+				getApplicationGroupId(applicationType), generatedProjectVersion)
+				: MavenModelUtils.getModelFromContainerPom(generatedProjectHome, getApplicationGroupId(applicationType), generatedProjectVersion);
 
 		if (model != null && MavenModelUtils.addModuleIntoModel(model, key)) {
 			String containerPomFile = String.format("%s/%s", generatedProjectHome, "pom.xml");
