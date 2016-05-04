@@ -283,7 +283,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	}
 
 	private String constructBinderArtifact(String binder) {
-		return String.format("%s-%s", "spring-cloud-stream-binder", binder);
+		return String.format("%s-%s", "spring-cloud-starter-stream", binder);
 	}
 
 	private String moveProjectWithMavenModelsUpdated(String key, File project,

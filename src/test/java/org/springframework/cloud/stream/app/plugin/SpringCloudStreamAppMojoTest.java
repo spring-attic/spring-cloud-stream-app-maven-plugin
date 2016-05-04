@@ -148,7 +148,7 @@ public class SpringCloudStreamAppMojoTest {
                 .filter(d -> d.getArtifactId().equals("spring-cloud-starter-stream-source-foo")).count(), equalTo(1L));
 
         assertThat(dependencies.stream()
-                .filter(d -> d.getArtifactId().equals("spring-cloud-stream-binder-kafka")).count(), equalTo(1L));
+                .filter(d -> d.getArtifactId().equals("spring-cloud-starter-stream-kafka")).count(), equalTo(1L));
 
         assertThat(pomModel.getParent().getArtifactId(), equalTo("spring-boot-starter-parent"));
 
