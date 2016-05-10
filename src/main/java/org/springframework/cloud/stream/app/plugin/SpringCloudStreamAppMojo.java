@@ -120,6 +120,15 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			deps.add(getDependency("app-starters-test-support", generatedAppGroupId));
 			artifactIds.add("app-starters-test-support");
 		}
+
+		for (Dependency testDep : value.getTestDependencies()) {
+			Dependency dep = getDependency(testDep.getArtifactId(),
+					testDep.getGroupId());
+			dep.setScope("test");
+			deps.add(dep);
+			artifactIds.add(dep.getArtifactId());
+		}
+
 		Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
 		String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
 		List<Repository> extraReposToAdd = new ArrayList<>();

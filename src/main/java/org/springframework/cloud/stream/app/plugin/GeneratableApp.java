@@ -1,6 +1,10 @@
 package org.springframework.cloud.stream.app.plugin;
 
+import io.spring.initializr.metadata.Dependency;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +25,16 @@ public class GeneratableApp {
     String extraTestConfigClass;
 
     String autoConfigClass;
+
+    List<Dependency> testDependencies = new ArrayList<>();
+
+    public List<Dependency> getTestDependencies() {
+        return testDependencies;
+    }
+
+    public void setTestDependencies(List<Dependency> testDependencies) {
+        this.testDependencies = testDependencies;
+    }
 
     public String getAutoConfigClass() {
         return autoConfigClass;
