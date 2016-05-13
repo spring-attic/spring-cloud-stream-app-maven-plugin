@@ -16,14 +16,14 @@
 
 package org.springframework.cloud.stream.app.plugin.utils;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author Soby Chacko
@@ -56,9 +56,7 @@ public class SpringCloudStreamPluginUtils {
     }
 
     public static void ignoreUnitTestGeneratedByInitializer(String generatedAppHome) throws IOException {
-        String testDir = String.format("%s/%s", generatedAppHome, "src/test/java");
-
-        Collection<File> files = FileUtils.listFiles(new File(testDir), null, true);
+        Collection<File> files = FileUtils.listFiles(new File(generatedAppHome, "src/main/java"), null, true);
         Optional<File> first = files.stream()
                 .filter(f -> f.getName().endsWith("ApplicationTests.java"))
                 .findFirst();
@@ -91,9 +89,7 @@ public class SpringCloudStreamPluginUtils {
     }
 
     public static void addExtraTestConfig(String generatedAppHome, String clazzInfo) throws IOException {
-        String testDir = String.format("%s/%s", generatedAppHome, "src/test/java");
-
-        Collection<File> files = FileUtils.listFiles(new File(testDir), null, true);
+        Collection<File> files = FileUtils.listFiles(new File(generatedAppHome, "src/main/java"), null, true);
         Optional<File> first = files.stream()
                 .filter(f -> f.getName().endsWith("ApplicationTests.java"))
                 .findFirst();
@@ -115,9 +111,7 @@ public class SpringCloudStreamPluginUtils {
     }
 
     public static void addAutoConfigImport(String generatedAppHome, String autoConfigClazz) throws IOException {
-        String srcDir = String.format("%s/%s", generatedAppHome, "src/main/java");
-
-        Collection<File> files = FileUtils.listFiles(new File(srcDir), null, true);
+        Collection<File> files = FileUtils.listFiles(new File(generatedAppHome, "src/main/java"), null, true);
         Optional<File> first = files.stream()
                 .filter(f -> f.getName().endsWith("Application.java"))
                 .findFirst();

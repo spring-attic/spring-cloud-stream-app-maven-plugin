@@ -16,16 +16,9 @@
 
 package org.springframework.cloud.stream.app.plugin;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.DependencyManagement;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.util.ReflectionUtils;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,9 +33,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Soby Chacko
@@ -106,7 +106,7 @@ public class SpringCloudStreamAppMojoTest {
 
     @Test
     public void testProjectCreatedIntoGeneratedProjectHome() throws Exception {
-        String projectHome = "/tmp/apps";
+        String projectHome = "./target/apps";
         Field generatedProjectHome = mojoClazz.getDeclaredField("generatedProjectHome");
         generatedProjectHome.setAccessible(true);
         ReflectionUtils.setField(generatedProjectHome, springCloudStreamAppMojo, projectHome);
@@ -122,10 +122,6 @@ public class SpringCloudStreamAppMojoTest {
 
         assertGeneratedPomXml(path);
 
-        //cleanup
-        File projectRoot = new File(projectHome);
-        FileUtils.cleanDirectory(projectRoot);
-        FileUtils.deleteDirectory(projectRoot);
     }
 
     private void assertGeneratedPomXml(Path path) throws Exception {
@@ -170,5 +166,7 @@ public class SpringCloudStreamAppMojoTest {
                 equalTo(1L));
 
         assertThat(pomModel.getRepositories().size(), equalTo(2));
+
+        is.close();
     }
 }
