@@ -1,5 +1,13 @@
 package org.springframework.cloud.stream.app.plugin.utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
@@ -7,8 +15,6 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-
-import java.io.*;
 
 /**
  * @author Soby Chacko
@@ -78,6 +84,7 @@ public class MavenModelUtils {
         final MavenXpp3Writer writer = new MavenXpp3Writer();
         OutputStreamWriter w = new OutputStreamWriter(os, "utf-8");
         writer.write(w, model);
+        w.close();
     }
 
     private static Model getModel(File pom) throws IOException, XmlPullParserException {
