@@ -16,9 +16,26 @@
 
 package org.springframework.cloud.stream.app.plugin;
 
-import io.spring.initializr.generator.ProjectRequest;
-import io.spring.initializr.metadata.Dependency;
-import io.spring.initializr.metadata.InitializrMetadata;
+import static java.util.stream.Collectors.toList;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,21 +44,16 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+
 import org.springframework.cloud.stream.app.plugin.utils.MavenModelUtils;
 import org.springframework.cloud.stream.app.plugin.utils.SpringCloudStreamPluginUtils;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.CollectionUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
+import io.spring.initializr.generator.ProjectRequest;
+import io.spring.initializr.metadata.Dependency;
+import io.spring.initializr.metadata.InitializrMetadata;
 
 /**
  * @author Soby Chacko
@@ -304,26 +316,25 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 				: MavenModelUtils.getModelFromContainerPom(generatedProjectHome, getApplicationGroupId(applicationType), generatedProjectVersion);
 
 		if (model != null && MavenModelUtils.addModuleIntoModel(model, key)) {
-			String containerPomFile = String.format("%s/%s", generatedProjectHome, "pom.xml");
-			MavenModelUtils.writeModelToFile(model, new FileOutputStream(containerPomFile));
+			MavenModelUtils.writeModelToFile(model, new FileOutputStream(new File(generatedProjectHome, "pom.xml")));
 		}
 
 		try {
-			String generatedAppHome = String.format("%s/%s", generatedProjectHome, key);
-			removeExistingContent(Paths.get(generatedAppHome));
+			File generatedAppHome = new File(generatedProjectHome, key);
+			removeExistingContent(generatedAppHome.toPath());
 
-			Files.move(Paths.get(project.toString(), key), Paths.get(generatedAppHome));
+			FileUtils.copyDirectory(new File(project, key), generatedAppHome);
 
-			File mvnw = new File(Paths.get(generatedAppHome).toFile(), "mvnw");
+			File mvnw = new File(generatedAppHome, "mvnw");
 			if (mvnw.exists()) {
 				mvnw.setExecutable(true);
 			}
 
 			if (testIgnored) {
-				SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome);
+				SpringCloudStreamPluginUtils.ignoreUnitTestGeneratedByInitializer(generatedAppHome.getAbsolutePath());
 			}
 			//MavenModelUtils.addModuleInfoToContainerPom(generatedProjectHome);
-			return generatedAppHome;
+			return generatedAppHome.getAbsolutePath();
 		} catch (IOException e) {
 			getLog().error("Error during plugin execution", e);
 			throw new IllegalStateException(e);
