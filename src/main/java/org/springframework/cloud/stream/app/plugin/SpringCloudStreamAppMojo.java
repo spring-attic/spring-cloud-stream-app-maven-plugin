@@ -76,6 +76,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	private String javaVersion;
 
 	@Parameter
+	private String bootVersion;
+
+	@Parameter
 	private String generatedProjectVersion;
 
 	@Parameter
@@ -158,6 +161,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 				.addRepositories(extraReposToAdd)
 				.addBom(bom.getName(), bom.getGroupId(), bom.getArtifactId(), bom.getVersion(), repoIds)
 				.addJavaVersion(javaVersion)
+				.addBootVersion(bootVersion)
 				.addDependencyGroup(appArtifactId, depArray).build();
 		initializrDelegate.applyMetadata(metadata);
 		ProjectRequest projectRequest = initializrDelegate.getProjectRequest(appArtifactId, getApplicationGroupId(applicationType),

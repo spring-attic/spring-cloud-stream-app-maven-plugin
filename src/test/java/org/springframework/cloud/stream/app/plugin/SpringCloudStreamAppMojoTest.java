@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Parent;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -59,6 +60,10 @@ public class SpringCloudStreamAppMojoTest {
         Field applicationType = mojoClazz.getDeclaredField("applicationType");
         applicationType.setAccessible(true);
         ReflectionUtils.setField(applicationType, springCloudStreamAppMojo, "stream");
+
+        Field bootVersion = mojoClazz.getDeclaredField("bootVersion");
+        bootVersion.setAccessible(true);
+        ReflectionUtils.setField(bootVersion, springCloudStreamAppMojo, "1.3.5.RELEASE");
 
         Field generatedProjectVersion = mojoClazz.getDeclaredField("generatedProjectVersion");
         generatedProjectVersion.setAccessible(true);
@@ -146,7 +151,9 @@ public class SpringCloudStreamAppMojoTest {
         assertThat(dependencies.stream()
                 .filter(d -> d.getArtifactId().equals("spring-cloud-starter-stream-kafka")).count(), equalTo(1L));
 
-        assertThat(pomModel.getParent().getArtifactId(), equalTo("spring-boot-starter-parent"));
+        Parent parent = pomModel.getParent();
+        assertThat(parent.getArtifactId(), equalTo("spring-boot-starter-parent"));
+        assertThat(parent.getVersion(), equalTo("1.3.5.RELEASE"));
 
         assertThat(pomModel.getArtifactId(), equalTo("foo-source-kafka"));
         assertThat(pomModel.getGroupId(), equalTo("org.springframework.cloud.stream.app"));

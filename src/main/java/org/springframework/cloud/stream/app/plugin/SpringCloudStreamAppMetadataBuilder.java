@@ -51,14 +51,23 @@ public class SpringCloudStreamAppMetadataBuilder {
 
     public SpringCloudStreamAppMetadataBuilder addDefaults() {
         return addDefaultPackagings().
-            addDefaultLanguages().
-            addDefaultBootVersions();
+            addDefaultLanguages();
     }
 
     private SpringCloudStreamAppMetadataBuilder addDefaultPackagings() {
         DefaultMetadataElement packaging = getMetadataElement("jar", true);
         builder.withCustomizer(initializerMetadata ->
                 initializerMetadata.getPackagings().getContent().add(packaging));
+        return this;
+    }
+
+    public SpringCloudStreamAppMetadataBuilder addBootVersion(String bootVersion) {
+        if (StringUtils.isEmpty(bootVersion)) {
+            bootVersion = "1.3.3.RELEASE";
+        }
+        DefaultMetadataElement bootVer = getMetadataElement(bootVersion, true);
+        builder.withCustomizer(initializerMetadata ->
+                initializerMetadata.getBootVersions().getContent().add(bootVer));
         return this;
     }
 
