@@ -88,6 +88,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	private List<Repository> extraRepositories;
 
 	@Parameter
+	List<Dependency> additionalGlobalDependencies = new ArrayList<>();
+
+	@Parameter
 	private Map<String, String> binders = new HashMap<>();
 
 	private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
@@ -134,6 +137,13 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
 			deps.add(getDependency("app-starters-test-support", generatedAppGroupId));
 			artifactIds.add("app-starters-test-support");
+		}
+
+		for (Dependency globalDep : additionalGlobalDependencies) {
+			Dependency dep = getDependency(globalDep.getArtifactId(),
+					globalDep.getGroupId());
+			deps.add(dep);
+			artifactIds.add(dep.getArtifactId());
 		}
 
 		for (Dependency testDep : value.getTestDependencies()) {
