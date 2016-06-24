@@ -1,11 +1,11 @@
 package org.springframework.cloud.stream.app.plugin;
 
-import io.spring.initializr.metadata.Dependency;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.spring.initializr.metadata.Dependency;
 
 /**
  * @author Soby Chacko
@@ -26,15 +26,7 @@ public class GeneratableApp {
 
     String autoConfigClass;
 
-    List<Dependency> testDependencies = new ArrayList<>();
-
-    public List<Dependency> getTestDependencies() {
-        return testDependencies;
-    }
-
-    public void setTestDependencies(List<Dependency> testDependencies) {
-        this.testDependencies = testDependencies;
-    }
+    List<Dependency> forceDependencies = new ArrayList<>();
 
     public String getAutoConfigClass() {
         return autoConfigClass;
@@ -91,6 +83,14 @@ public class GeneratableApp {
 
     public void setExtraRepositories(Map<String, String> extraRepositories) {
         this.extraRepositories = extraRepositories;
+    }
+
+    public List<Dependency> getForceDependencies() {
+        return forceDependencies;
+    }
+
+    public void setForceDependencies(List<Dependency> forceDependencies) {
+        this.forceDependencies = forceDependencies;
     }
 
     @Override

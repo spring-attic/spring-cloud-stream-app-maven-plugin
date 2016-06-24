@@ -146,12 +146,21 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			artifactIds.add(dep.getArtifactId());
 		}
 
-		for (Dependency testDep : value.getTestDependencies()) {
-			Dependency dep = getDependency(testDep.getArtifactId(),
-					testDep.getGroupId());
-			dep.setScope("test");
-			deps.add(dep);
-			artifactIds.add(dep.getArtifactId());
+		//Force a dependency independent of BOM
+		for (Dependency forceDep : value.getForceDependencies()) {
+			Dependency dependency = new Dependency();
+			dependency.setId(forceDep.getArtifactId());
+			dependency.setGroupId(forceDep.getGroupId());
+			dependency.setArtifactId(forceDep.getArtifactId());
+			if (StringUtils.isNotEmpty(forceDep.getVersion())) {
+				dependency.setVersion(forceDep.getVersion());
+			}
+			else {
+				dependency.setBom(bom.getName());
+			}
+			deps.add(dependency);
+
+			artifactIds.add(dependency.getArtifactId());
 		}
 
 		Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
