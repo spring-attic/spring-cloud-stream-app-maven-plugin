@@ -11,9 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.model.Build;
+import org.apache.maven.model.Developer;
+import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.Scm;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -52,6 +55,7 @@ public class MavenModelUtils {
         build.addPlugin(plugin);
     }
 
+    //TODO: Several hard-coded data in this method needs to be parameterized somehow.
     public static Model getModelFromContainerPom(File genProjecthome, String groupId, String version) throws IOException, XmlPullParserException {
         File pom = new File(genProjecthome, "pom.xml");
         Model model = pom.exists() ? getModel(pom) : null;
@@ -59,6 +63,48 @@ public class MavenModelUtils {
             model.setGroupId(groupId);
             model.setArtifactId(genProjecthome.getName());
             model.setVersion(version);
+            model.setName("Apps Container");
+            model.setDescription("Container project for generated apps");
+            model.setUrl("http://spring.io/spring-cloud");
+            License license = new License();
+            license.setName("Apache License, Version 2.0");
+            license.setUrl("http://www.apache.org/licenses/LICENSE-2.0");
+            license.setComments("Copyright 2014-2015 the original author or authors.\n" +
+                    "\n" +
+                    "Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
+                    "you may not use this file except in compliance with the License.\n" +
+                    "You may obtain a copy of the License at\n" +
+                    "\n" +
+                    "\thttp://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "\n" +
+                    "Unless required by applicable law or agreed to in writing, software\n" +
+                    "distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n" +
+                    "implied.\n" +
+                    "\n" +
+                    "See the License for the specific language governing permissions and\n" +
+                    "limitations under the License.");
+            List<License> licenses = new ArrayList<>();
+            licenses.add(license);
+            model.setLicenses(licenses);
+            Scm scm = new Scm();
+            scm.setConnection("scm:git:git://github.com/spring-cloud/spring-cloud-stream-app-starters.git");
+            scm.setDeveloperConnection("scm:git:ssh://git@github.com/spring-cloud/spring-cloud-stream-app-starters.git");
+            scm.setUrl("https://github.com/spring-cloud/spring-cloud-stream-app-starters");
+            model.setScm(scm);
+
+            Developer developer = new Developer();
+            developer.setId("schacko");
+            developer.setName("Soby Chacko");
+            developer.setEmail("schacko at pivotal.io");
+            developer.setOrganization("Pivotal Software, Inc.");
+            developer.setOrganizationUrl("http://www.spring.io");
+            List<String> roles = new ArrayList<>();
+            roles.add("developer");
+            developer.setRoles(roles);
+            List<Developer> developers = new ArrayList<>();
+            developers.add(developer);
+            model.setDevelopers(developers);
 
             getBuildWithDockerPluginDefinition(model);
         }
