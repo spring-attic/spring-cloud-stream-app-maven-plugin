@@ -7,10 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -146,7 +149,7 @@ public class MavenModelUtils {
         writeModelToFile(pomModel, os);
     }
 
-    public static void addSurefirePlugin( InputStream is, OutputStream os) throws IOException {
+    public static void addExtraPlugins(InputStream is, OutputStream os) throws IOException {
         final MavenXpp3Reader reader = new MavenXpp3Reader();
 
         Model pomModel;
@@ -157,6 +160,16 @@ public class MavenModelUtils {
             throw new IllegalStateException(e);
         }
 
+        pomModel.getBuild().addPlugin(getSurefirePlugin());
+        pomModel.getBuild().addPlugin(getJavadocPlugin());
+        pomModel.getBuild().addPlugin(getSourcePlugin());
+
+        pomModel.getProperties().setProperty("skipTests", "true");
+
+        writeModelToFile(pomModel, os);
+    }
+
+    private static Plugin getSurefirePlugin() {
         final Plugin surefirePlugin = new Plugin();
         surefirePlugin.setGroupId("org.apache.maven.plugins");
         surefirePlugin.setArtifactId("maven-surefire-plugin");
@@ -167,11 +180,51 @@ public class MavenModelUtils {
         mavenPluginConfiguration.addChild(skipTests);
 
         surefirePlugin.setConfiguration(mavenPluginConfiguration);
-        pomModel.getBuild().addPlugin(surefirePlugin);
+        return surefirePlugin;
+    }
 
-        pomModel.getProperties().setProperty("skipTests", "true");
+    private static Plugin getJavadocPlugin() {
+        final Plugin javadocPlugin = new Plugin();
+        javadocPlugin.setGroupId("org.apache.maven.plugins");
+        javadocPlugin.setArtifactId("maven-javadoc-plugin");
+        //javadocPlugin.setVersion("2.10.4");
 
-        writeModelToFile(pomModel, os);
+        PluginExecution pluginExecution = new PluginExecution();
+        pluginExecution.setId("javadoc");
+        List<String> goals = new ArrayList<>();
+        goals.add("jar");
+        pluginExecution.setGoals(goals);
+        pluginExecution.setPhase("package");
+        List<PluginExecution> pluginExecutions = new ArrayList<>();
+        pluginExecutions.add(pluginExecution);
+        javadocPlugin.setExecutions(pluginExecutions);
+
+        final Xpp3Dom javadocConfig = new Xpp3Dom("configuration");
+        final Xpp3Dom quiet = new Xpp3Dom("quiet");
+        quiet.setValue("true");
+        javadocConfig.addChild(quiet);
+
+        javadocPlugin.setConfiguration(javadocConfig);
+        return javadocPlugin;
+    }
+
+    private static Plugin getSourcePlugin() {
+        final Plugin sourcePlugin = new Plugin();
+        sourcePlugin.setGroupId("org.apache.maven.plugins");
+        sourcePlugin.setArtifactId("maven-source-plugin");
+        //sourcePlugin.setVersion("3.0.1");
+
+        PluginExecution pluginExecution = new PluginExecution();
+        pluginExecution.setId("attach-sources");
+        List<String> goals = new ArrayList<>();
+        goals.add("jar");
+        pluginExecution.setGoals(goals);
+        pluginExecution.setPhase("package");
+        List<PluginExecution> pluginExecutions = new ArrayList<>();
+        pluginExecutions.add(pluginExecution);
+        sourcePlugin.setExecutions(pluginExecutions);
+
+        return sourcePlugin;
     }
 
     private static Xpp3Dom addElement(Xpp3Dom parentElement, String elementName) {

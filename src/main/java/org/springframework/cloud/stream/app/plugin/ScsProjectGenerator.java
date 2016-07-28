@@ -45,7 +45,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
             FileInputStream is1 = new FileInputStream(tempOutputFile1);
             FileOutputStream os1 = new FileOutputStream(tempOutputFile2);
 
-            MavenModelUtils.addSurefirePlugin(is1, os1);
+            MavenModelUtils.addExtraPlugins(is1, os1);
 
             is.close();
             is1.close();
@@ -54,7 +54,6 @@ public class ScsProjectGenerator extends ProjectGenerator {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-
 
         inputFile.delete();
         tempOutputFile2.renameTo(inputFile);
