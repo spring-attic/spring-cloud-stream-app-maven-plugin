@@ -7,10 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.springframework.cloud.stream.app.plugin.utils.MavenModelUtils;
-
 import io.spring.initializr.generator.ProjectGenerator;
 import io.spring.initializr.generator.ProjectRequest;
+import org.apache.maven.model.Model;
+
+import org.springframework.cloud.stream.app.plugin.utils.MavenModelUtils;
 
 /**
  *
@@ -21,6 +22,8 @@ import io.spring.initializr.generator.ProjectRequest;
 public class ScsProjectGenerator extends ProjectGenerator {
 
     private String dockerHubOrg;
+
+    private String bomsWithHigherPrecedence;
 
     @Override
     protected File doGenerateProjectStructure(ProjectRequest request) {
@@ -45,7 +48,10 @@ public class ScsProjectGenerator extends ProjectGenerator {
             FileInputStream is1 = new FileInputStream(tempOutputFile1);
             FileOutputStream os1 = new FileOutputStream(tempOutputFile2);
 
-            MavenModelUtils.addSurefirePlugin(is1, os1);
+            Model pomModel = MavenModelUtils.getModel(is1);
+            MavenModelUtils.addSurefirePlugin(pomModel);
+            MavenModelUtils.addBomsWithHigherPrecedence(pomModel, bomsWithHigherPrecedence);
+            MavenModelUtils.writeModelToFile(pomModel, os1);
 
             is.close();
             is1.close();
@@ -54,7 +60,6 @@ public class ScsProjectGenerator extends ProjectGenerator {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-
 
         inputFile.delete();
         tempOutputFile2.renameTo(inputFile);
@@ -67,5 +72,9 @@ public class ScsProjectGenerator extends ProjectGenerator {
 
     public void setDockerHubOrg(String dockerHubOrg) {
         this.dockerHubOrg = dockerHubOrg;
+    }
+
+    public void setBomsWithHigherPrecedence(String bomsWithHigherPrecedence) {
+        this.bomsWithHigherPrecedence = bomsWithHigherPrecedence;
     }
 }
