@@ -22,13 +22,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.util.StringUtils;
-
 import io.spring.initializr.metadata.BillOfMaterials;
 import io.spring.initializr.metadata.DefaultMetadataElement;
 import io.spring.initializr.metadata.DependencyGroup;
 import io.spring.initializr.metadata.InitializrMetadata;
 import io.spring.initializr.metadata.InitializrMetadataBuilder;
+
+import org.springframework.util.StringUtils;
 
 /**
  * @author Soby Chacko
@@ -88,13 +88,6 @@ public class SpringCloudStreamAppMetadataBuilder {
         return this;
     }
 
-    private SpringCloudStreamAppMetadataBuilder addDefaultBootVersions() {
-        DefaultMetadataElement bootVersion = getMetadataElement("1.3.3.RELEASE", true);
-        builder.withCustomizer(initializrMetadata ->
-                initializrMetadata.getBootVersions().getContent().add(bootVersion));
-        return this;
-    }
-
     private DefaultMetadataElement getMetadataElement(String id, boolean defaultValue) {
         DefaultMetadataElement metadataElement = new DefaultMetadataElement();
         metadataElement.setId(id);
@@ -148,5 +141,4 @@ public class SpringCloudStreamAppMetadataBuilder {
         });
         return this;
     }
-
 }

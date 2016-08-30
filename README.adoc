@@ -55,5 +55,13 @@ The bom for stream apps is specified in spring-cloud-stream-app-dependencies
 and for tasks it is spring-cloud-task-app-dependencies
 (group id: org.springframework.cloud.task.app).
 
+Extra dependency management can be added as additional boms to the plugin using the property
+-DbomsWithHigherPrecedence and value based on the pattern groupId:artfiactId:version. This can
+ be a comma separated collection of boms. Any bom added like this will get priority in the order
+ they are specified over any default values used in the plugin configuration.
+
+ Spring Boot version used in the generated app can be overridden using the plugin property
+ -DbootVersion=<spring boot version>.
+
 
 
