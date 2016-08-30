@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.stream.app.plugin;
 
-import static java.util.stream.Collectors.toList;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,11 +28,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.spring.initializr.generator.ProjectRequest;
+import io.spring.initializr.metadata.Dependency;
+import io.spring.initializr.metadata.InitializrMetadata;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
@@ -51,9 +51,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.CollectionUtils;
 
-import io.spring.initializr.generator.ProjectRequest;
-import io.spring.initializr.metadata.Dependency;
-import io.spring.initializr.metadata.InitializrMetadata;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Soby Chacko
@@ -93,11 +91,16 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	@Parameter
 	private Map<String, String> binders = new HashMap<>();
 
+	@Parameter
+	private String bomsWithHigherPrecedence;
+
 	private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
 		projectGenerator.setDockerHubOrg("springcloud" + applicationType);
+		projectGenerator.setBomsWithHigherPrecedence(bomsWithHigherPrecedence);
+
 		final InitializrDelegate initializrDelegate = new InitializrDelegate();
 
 		initializrDelegate.prepareProjectGenerator();
@@ -109,7 +112,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 					generateApp(initializrDelegate, entry, appType);
 				}
 			}
-		} catch (IOException | XmlPullParserException e) {
+		}
+		catch (IOException | XmlPullParserException e) {
 			throw new IllegalStateException(e);
 		}
 	}
@@ -199,7 +203,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	private List<String> getAppTypes() {
 		List<String> appTypes = new ArrayList<>();
 
-		if(!CollectionUtils.isEmpty(binders)){
+		if (!CollectionUtils.isEmpty(binders)) {
 			appTypes.addAll(binders.keySet());
 		}
 		else {
@@ -213,20 +217,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		if (generatedProjectHome != null && project != null) {
 			String generatedAppHome = moveProjectWithMavenModelsUpdated(appArtifactId, project, generatedProjectHome,
 					value.isTestsIgnored(), generatedProjectVersion);
-			Stream<Path> pathStream =
-					Files.find(Paths.get(System.getProperty("user.dir")), 3,
-							(path, attr) -> String.valueOf(path).contains(getStarterArtifactId(origKey)));
 
-			Optional<Path> first = pathStream.findFirst();
-			if (first.isPresent()) {
-				Path path = first.get();
-
-				Path readmePath = Paths.get(path.toString(), "README.adoc");
-				File readmeDoc = readmePath.toFile();
-				if (readmeDoc.exists()) {
-					Files.copy(readmePath, Paths.get(generatedAppHome, "README.adoc"));
-				}
-			}
 			if (StringUtils.isNotEmpty(value.getExtraTestConfigClass())) {
 				String s = StringUtils.removeAndHump(appArtifactId, "-");
 				String s1 = StringUtils.capitalizeFirstLetter(s);
@@ -235,11 +226,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 						"\t\t" + s1 + "Application.class" + " }";
 				SpringCloudStreamPluginUtils.addExtraTestConfig(generatedAppHome, clazzInfo);
 			}
-			//if (StringUtils.isNotEmpty(value.getAutoConfigClass())){
-				String s = StringUtils.removeAndHump(origKey, "-");
-				String s1 = StringUtils.capitalizeFirstLetter(s);
+			String s = StringUtils.removeAndHump(origKey, "-");
+			String s1 = StringUtils.capitalizeFirstLetter(s);
 
-				//String subPackage = StringUtils.join(origKey.split("-"), ".");
 			String[] tokens = origKey.split("-");
 			List<String> orderedStarterArtifactTokens = new LinkedList<>();
 			int toLimit = applicationType.equals("task") ? tokens.length - 1 : tokens.length;
@@ -249,12 +238,12 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			String subPackage = orderedStarterArtifactTokens.stream().collect(Collectors.joining("."));
 
 			String toBeImported = StringUtils.isEmpty(value.getAutoConfigClass()) ?
-						String.format("%s.%s.%s.%s.%sConfiguration.class", "org.springframework.cloud", applicationType, "app", subPackage, s1)
-						: value.getAutoConfigClass();
-				SpringCloudStreamPluginUtils.addAutoConfigImport(generatedAppHome, toBeImported);
-			//}
+					String.format("%s.%s.%s.%s.%sConfiguration.class", "org.springframework.cloud", applicationType, "app", subPackage, s1)
+					: value.getAutoConfigClass();
+			SpringCloudStreamPluginUtils.addAutoConfigImport(generatedAppHome, toBeImported);
 			addCopyrightToJavaFiles(generatedAppHome);
-		} else if (project != null) {
+		}
+		else if (project != null) {
 			//no user provided generated project home, fall back to the default used by the Initializr
 			getLog().info("Project is generated at " + project.toString());
 		}
@@ -268,7 +257,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		javaStream.forEach(p -> {
 			try {
 				SpringCloudStreamPluginUtils.addCopyRight(p);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				getLog().warn("Issues adding copyright", e);
 			}
 		});
@@ -358,7 +348,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			}
 			//MavenModelUtils.addModuleInfoToContainerPom(generatedProjectHome);
 			return generatedAppHome.getAbsolutePath();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			getLog().error("Error during plugin execution", e);
 			throw new IllegalStateException(e);
 		}
@@ -372,7 +363,8 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		if (path.toFile().exists()) {
 			try {
 				SpringCloudStreamPluginUtils.cleanupGenProjHome(path.toFile());
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				getLog().error("Error", e);
 				throw new IllegalStateException(e);
 			}
