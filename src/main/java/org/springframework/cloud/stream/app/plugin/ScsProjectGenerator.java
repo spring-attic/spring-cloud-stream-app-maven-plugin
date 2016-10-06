@@ -49,7 +49,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
             FileOutputStream os1 = new FileOutputStream(tempOutputFile2);
 
             Model pomModel = MavenModelUtils.getModel(is1);
-            MavenModelUtils.addSurefirePlugin(pomModel);
+            MavenModelUtils.addExtraPlugins(pomModel);
             MavenModelUtils.addBomsWithHigherPrecedence(pomModel, bomsWithHigherPrecedence);
             MavenModelUtils.writeModelToFile(pomModel, os1);
 

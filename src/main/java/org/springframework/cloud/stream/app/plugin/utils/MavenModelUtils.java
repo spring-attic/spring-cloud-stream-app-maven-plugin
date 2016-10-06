@@ -6,12 +6,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Developer;
+import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.Scm;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -59,6 +65,49 @@ public class MavenModelUtils {
             model.setGroupId(groupId);
             model.setArtifactId(genProjecthome.getName());
             model.setVersion(version);
+
+            model.setName("Apps Container");
+            model.setDescription("Container project for generated apps");
+            model.setUrl("http://spring.io/spring-cloud");
+            License license = new License();
+            license.setName("Apache License, Version 2.0");
+            license.setUrl("http://www.apache.org/licenses/LICENSE-2.0");
+            license.setComments("Copyright 2014-2015 the original author or authors.\n" +
+                    "\n" +
+                    "Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
+                    "you may not use this file except in compliance with the License.\n" +
+                    "You may obtain a copy of the License at\n" +
+                    "\n" +
+                    "\thttp://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "\n" +
+                    "Unless required by applicable law or agreed to in writing, software\n" +
+                    "distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n" +
+                    "implied.\n" +
+                    "\n" +
+                    "See the License for the specific language governing permissions and\n" +
+                    "limitations under the License.");
+            List<License> licenses = new ArrayList<>();
+            licenses.add(license);
+            model.setLicenses(licenses);
+            Scm scm = new Scm();
+            scm.setConnection("scm:git:git://github.com/spring-cloud/spring-cloud-stream-app-starters.git");
+            scm.setDeveloperConnection("scm:git:ssh://git@github.com/spring-cloud/spring-cloud-stream-app-starters.git");
+            scm.setUrl("https://github.com/spring-cloud/spring-cloud-stream-app-starters");
+            model.setScm(scm);
+
+            Developer developer = new Developer();
+            developer.setId("schacko");
+            developer.setName("Soby Chacko");
+            developer.setEmail("schacko at pivotal.io");
+            developer.setOrganization("Pivotal Software, Inc.");
+            developer.setOrganizationUrl("http://www.spring.io");
+            List<String> roles = new ArrayList<>();
+            roles.add("developer");
+            developer.setRoles(roles);
+            List<Developer> developers = new ArrayList<>();
+            developers.add(developer);
+            model.setDevelopers(developers);
 
             getBuildWithDockerPluginDefinition(model);
         }
@@ -148,6 +197,15 @@ public class MavenModelUtils {
         writeModelToFile(pomModel, os);
     }
 
+    public static void addExtraPlugins(Model pomModel) throws IOException {
+
+        pomModel.getBuild().addPlugin(getSurefirePlugin());
+        pomModel.getBuild().addPlugin(getJavadocPlugin());
+        pomModel.getBuild().addPlugin(getSourcePlugin());
+
+        pomModel.getProperties().setProperty("skipTests", "true");
+    }
+
     public static void addBomsWithHigherPrecedence(Model pomModel, String bomsWithHigherPrecedence) throws IOException {
         DependencyManagement dependencyManagement = pomModel.getDependencyManagement();
         int i = 0;
@@ -174,8 +232,7 @@ public class MavenModelUtils {
         pomModel.setDependencyManagement(dependencyManagement);
     }
 
-    public static void addSurefirePlugin(Model pomModel) throws IOException {
-
+    private static Plugin getSurefirePlugin() {
         final Plugin surefirePlugin = new Plugin();
         surefirePlugin.setGroupId("org.apache.maven.plugins");
         surefirePlugin.setArtifactId("maven-surefire-plugin");
@@ -186,9 +243,50 @@ public class MavenModelUtils {
         mavenPluginConfiguration.addChild(skipTests);
 
         surefirePlugin.setConfiguration(mavenPluginConfiguration);
-        pomModel.getBuild().addPlugin(surefirePlugin);
+        return surefirePlugin;
+    }
 
-        pomModel.getProperties().setProperty("skipTests", "true");
+    private static Plugin getJavadocPlugin() {
+        final Plugin javadocPlugin = new Plugin();
+        javadocPlugin.setGroupId("org.apache.maven.plugins");
+        javadocPlugin.setArtifactId("maven-javadoc-plugin");
+        //javadocPlugin.setVersion("2.10.4");
+
+        PluginExecution pluginExecution = new PluginExecution();
+        pluginExecution.setId("javadoc");
+        List<String> goals = new ArrayList<>();
+        goals.add("jar");
+        pluginExecution.setGoals(goals);
+        pluginExecution.setPhase("package");
+        List<PluginExecution> pluginExecutions = new ArrayList<>();
+        pluginExecutions.add(pluginExecution);
+        javadocPlugin.setExecutions(pluginExecutions);
+
+        final Xpp3Dom javadocConfig = new Xpp3Dom("configuration");
+        final Xpp3Dom quiet = new Xpp3Dom("quiet");
+        quiet.setValue("true");
+        javadocConfig.addChild(quiet);
+
+        javadocPlugin.setConfiguration(javadocConfig);
+        return javadocPlugin;
+    }
+
+    private static Plugin getSourcePlugin() {
+        final Plugin sourcePlugin = new Plugin();
+        sourcePlugin.setGroupId("org.apache.maven.plugins");
+        sourcePlugin.setArtifactId("maven-source-plugin");
+
+        PluginExecution pluginExecution = new PluginExecution();
+        pluginExecution.setId("attach-sources");
+        List<String> goals = new ArrayList<>();
+        goals.add("jar");
+        pluginExecution.setGoals(goals);
+        pluginExecution.setPhase("package");
+        List<PluginExecution> pluginExecutions = new ArrayList<>();
+        pluginExecutions.add(pluginExecution);
+        sourcePlugin.setExecutions(pluginExecutions);
+
+        return sourcePlugin;
     }
 
     private static Xpp3Dom addElement(Xpp3Dom parentElement, String elementName) {
