@@ -6,12 +6,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import io.spring.initializr.generator.ProjectGenerator;
 import io.spring.initializr.generator.ProjectRequest;
 import org.apache.maven.model.Model;
 
 import org.springframework.cloud.stream.app.plugin.utils.MavenModelUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  *
@@ -24,6 +26,8 @@ public class ScsProjectGenerator extends ProjectGenerator {
     private String dockerHubOrg;
 
     private String bomsWithHigherPrecedence;
+
+    private List<Bom> additionalBoms;
 
     @Override
     protected File doGenerateProjectStructure(ProjectRequest request) {
@@ -51,6 +55,9 @@ public class ScsProjectGenerator extends ProjectGenerator {
             Model pomModel = MavenModelUtils.getModel(is1);
             MavenModelUtils.addExtraPlugins(pomModel);
             MavenModelUtils.addBomsWithHigherPrecedence(pomModel, bomsWithHigherPrecedence);
+            if (!CollectionUtils.isEmpty(additionalBoms)) {
+                MavenModelUtils.addAdditionalBoms(pomModel, additionalBoms);
+            }
             MavenModelUtils.writeModelToFile(pomModel, os1);
 
             is.close();
@@ -76,5 +83,9 @@ public class ScsProjectGenerator extends ProjectGenerator {
 
     public void setBomsWithHigherPrecedence(String bomsWithHigherPrecedence) {
         this.bomsWithHigherPrecedence = bomsWithHigherPrecedence;
+    }
+
+    public void setAdditionalBoms(List<Bom> additionalBoms) {
+        this.additionalBoms = additionalBoms;
     }
 }

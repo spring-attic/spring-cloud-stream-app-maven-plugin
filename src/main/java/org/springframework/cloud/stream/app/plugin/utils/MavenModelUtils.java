@@ -23,6 +23,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
+import org.springframework.cloud.stream.app.plugin.Bom;
 import org.springframework.util.StringUtils;
 
 /**
@@ -224,6 +225,22 @@ public class MavenModelUtils {
             dependency.setGroupId(groupId);
             dependency.setArtifactId(artifactId);
             dependency.setVersion(version);
+            dependency.setType("pom");
+            dependency.setScope("import");
+            dependencyManagement.getDependencies().add(i++, dependency);
+        }
+
+        pomModel.setDependencyManagement(dependencyManagement);
+    }
+
+    public static void addAdditionalBoms(Model pomModel, List<Bom> additionalBoms) throws IOException {
+        DependencyManagement dependencyManagement = pomModel.getDependencyManagement();
+        int i = 0;
+        for (Bom bom : additionalBoms) {
+            Dependency dependency = new Dependency();
+            dependency.setGroupId(bom.getGroupId());
+            dependency.setArtifactId(bom.getArtifactId());
+            dependency.setVersion(bom.getVersion());
             dependency.setType("pom");
             dependency.setScope("import");
             dependencyManagement.getDependencies().add(i++, dependency);

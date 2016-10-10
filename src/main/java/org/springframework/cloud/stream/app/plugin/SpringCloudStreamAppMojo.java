@@ -94,12 +94,16 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	@Parameter
 	private String bomsWithHigherPrecedence;
 
+	@Parameter
+	private List<Bom> additionalBoms;
+
 	private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
 		projectGenerator.setDockerHubOrg("springcloud" + applicationType);
 		projectGenerator.setBomsWithHigherPrecedence(bomsWithHigherPrecedence);
+		projectGenerator.setAdditionalBoms(additionalBoms);
 
 		final InitializrDelegate initializrDelegate = new InitializrDelegate();
 
