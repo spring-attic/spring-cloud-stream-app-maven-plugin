@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.DeploymentRepository;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
@@ -109,6 +110,18 @@ public class MavenModelUtils {
             List<Developer> developers = new ArrayList<>();
             developers.add(developer);
             model.setDevelopers(developers);
+
+            DeploymentRepository releaseRepo = new DeploymentRepository();
+            releaseRepo.setId("repo.spring.io");
+            releaseRepo.setName("Spring Release Repository");
+            releaseRepo.setUrl("https://repo.spring.io/libs-release-local");
+            model.getDistributionManagement().setRepository(releaseRepo);
+
+            DeploymentRepository snapshotRepo = new DeploymentRepository();
+            snapshotRepo.setId("repo.spring.io");
+            snapshotRepo.setName("Spring Snapshot Repository");
+            snapshotRepo.setUrl("https://repo.spring.io/libs-snapshot-local");
+            model.getDistributionManagement().setSnapshotRepository(snapshotRepo);
 
             getBuildWithDockerPluginDefinition(model);
         }
