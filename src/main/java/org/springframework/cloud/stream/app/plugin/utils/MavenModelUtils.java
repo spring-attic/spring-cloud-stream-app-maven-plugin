@@ -14,6 +14,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.DeploymentRepository;
 import org.apache.maven.model.Developer;
+import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
@@ -111,17 +112,21 @@ public class MavenModelUtils {
             developers.add(developer);
             model.setDevelopers(developers);
 
+            DistributionManagement distributionManagement = new DistributionManagement();
+
             DeploymentRepository releaseRepo = new DeploymentRepository();
             releaseRepo.setId("repo.spring.io");
             releaseRepo.setName("Spring Release Repository");
             releaseRepo.setUrl("https://repo.spring.io/libs-release-local");
-            model.getDistributionManagement().setRepository(releaseRepo);
+            distributionManagement.setRepository(releaseRepo);
 
             DeploymentRepository snapshotRepo = new DeploymentRepository();
             snapshotRepo.setId("repo.spring.io");
             snapshotRepo.setName("Spring Snapshot Repository");
             snapshotRepo.setUrl("https://repo.spring.io/libs-snapshot-local");
-            model.getDistributionManagement().setSnapshotRepository(snapshotRepo);
+            distributionManagement.setSnapshotRepository(snapshotRepo);
+
+            model.setDistributionManagement(distributionManagement);
 
             getBuildWithDockerPluginDefinition(model);
         }
@@ -260,6 +265,24 @@ public class MavenModelUtils {
         }
 
         pomModel.setDependencyManagement(dependencyManagement);
+    }
+
+    public static void addDistributionManagement(Model pomModel) {
+        DistributionManagement distributionManagement = new DistributionManagement();
+
+        DeploymentRepository releaseRepo = new DeploymentRepository();
+        releaseRepo.setId("repo.spring.io");
+        releaseRepo.setName("Spring Release Repository");
+        releaseRepo.setUrl("https://repo.spring.io/libs-release-local");
+        distributionManagement.setRepository(releaseRepo);
+
+        DeploymentRepository snapshotRepo = new DeploymentRepository();
+        snapshotRepo.setId("repo.spring.io");
+        snapshotRepo.setName("Spring Snapshot Repository");
+        snapshotRepo.setUrl("https://repo.spring.io/libs-snapshot-local");
+        distributionManagement.setSnapshotRepository(snapshotRepo);
+
+        pomModel.setDistributionManagement(distributionManagement);
     }
 
     private static Plugin getSurefirePlugin() {
