@@ -16,14 +16,14 @@
 
 package org.springframework.cloud.stream.app.plugin.utils;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author Soby Chacko
@@ -100,6 +100,9 @@ public class SpringCloudStreamPluginUtils {
             Files.readAllLines(f1.toPath()).forEach(l -> {
                 if (l.startsWith("@SpringApplicationConfiguration")) {
                     sb.append("@SpringApplicationConfiguration(").append(clazzInfo).append(")");
+                }
+                else if (l.startsWith("@SpringBootTest")) {
+                    sb.append("@SpringBootTest(").append(clazzInfo).append(")");
                 }
                 else {
                     sb.append(l);
