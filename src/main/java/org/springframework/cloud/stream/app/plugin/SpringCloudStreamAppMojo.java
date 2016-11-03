@@ -146,14 +146,15 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			deps.add(getDependency("app-starters-test-support", generatedAppGroupId));
 			artifactIds.add("app-starters-test-support");
 
-			String[] tokens = entry.getKey().split("-");
-			String starterType = Stream.of(tokens)
-					.limit(tokens.length - 1)
-					.collect(Collectors.joining("-"));
+			if (!value.isNoAppSpecificTestSupportArtifact()) {
+				String[] tokens = entry.getKey().split("-");
+				String starterType = Stream.of(tokens)
+						.limit(tokens.length - 1)
+						.collect(Collectors.joining("-"));
 
-			deps.add(getDependency(starterType + "-" +"app-starters-test-support", generatedAppGroupId));
-			artifactIds.add(starterType + "-" + "app-starters-test-support");
-
+				deps.add(getDependency(starterType + "-" + "app-starters-test-support", generatedAppGroupId));
+				artifactIds.add(starterType + "-" + "app-starters-test-support");
+			}
 		}
 
 		for (Dependency globalDep : additionalGlobalDependencies) {

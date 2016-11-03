@@ -23,6 +23,7 @@ public class GeneratableApp {
     boolean testsIgnored;
 
     String extraTestConfigClass;
+    boolean noAppSpecificTestSupportArtifact;
 
     String autoConfigClass;
 
@@ -108,5 +109,13 @@ public class GeneratableApp {
 
     public String getGeneratedProjectHome() {
         return generatedProjectHome;
+    }
+
+    public boolean isNoAppSpecificTestSupportArtifact() {
+        return noAppSpecificTestSupportArtifact;
+    }
+
+    public void setNoAppSpecificTestSupportArtifact(boolean noAppSpecificTestSupportArtifact) {
+        this.noAppSpecificTestSupportArtifact = noAppSpecificTestSupportArtifact;
     }
 }
