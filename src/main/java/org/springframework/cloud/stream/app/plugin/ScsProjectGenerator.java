@@ -59,6 +59,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
                 MavenModelUtils.addAdditionalBoms(pomModel, additionalBoms);
             }
             MavenModelUtils.addDistributionManagement(pomModel);
+            MavenModelUtils.addProfiles(pomModel);
             MavenModelUtils.writeModelToFile(pomModel, os1);
 
             is.close();

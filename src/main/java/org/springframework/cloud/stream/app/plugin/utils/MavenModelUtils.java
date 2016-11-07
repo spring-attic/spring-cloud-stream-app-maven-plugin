@@ -19,6 +19,7 @@ import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.Profile;
 import org.apache.maven.model.Scm;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
@@ -127,6 +128,20 @@ public class MavenModelUtils {
             distributionManagement.setSnapshotRepository(snapshotRepo);
 
             model.setDistributionManagement(distributionManagement);
+
+            Profile profile = new Profile();
+            profile.setId("milestone");
+            DistributionManagement milestoneDistManagement = new DistributionManagement();
+
+            DeploymentRepository milestoneRepo = new DeploymentRepository();
+            milestoneRepo.setId("repo.spring.io");
+            milestoneRepo.setName("Spring Milestone Repository");
+            milestoneRepo.setUrl("https://repo.spring.io/libs-milestone-local");
+            milestoneDistManagement.setRepository(milestoneRepo);
+            profile.setDistributionManagement(milestoneDistManagement);
+            List<Profile> profiles = new ArrayList<>();
+            profiles.add(profile);
+            model.setProfiles(profiles);
 
             getBuildWithDockerPluginDefinition(model);
         }
@@ -283,6 +298,22 @@ public class MavenModelUtils {
         distributionManagement.setSnapshotRepository(snapshotRepo);
 
         pomModel.setDistributionManagement(distributionManagement);
+    }
+
+    public static void addProfiles(Model pomModel) {
+        Profile profile = new Profile();
+        profile.setId("milestone");
+        DistributionManagement milestoneDistManagement = new DistributionManagement();
+
+        DeploymentRepository milestoneRepo = new DeploymentRepository();
+        milestoneRepo.setId("repo.spring.io");
+        milestoneRepo.setName("Spring Milestone Repository");
+        milestoneRepo.setUrl("https://repo.spring.io/libs-milestone-local");
+        milestoneDistManagement.setRepository(milestoneRepo);
+        profile.setDistributionManagement(milestoneDistManagement);
+        List<Profile> profiles = new ArrayList<>();
+        profiles.add(profile);
+        pomModel.setProfiles(profiles);
     }
 
     private static Plugin getSurefirePlugin() {

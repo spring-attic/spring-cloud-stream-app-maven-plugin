@@ -153,6 +153,20 @@
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>repo.spring.io</id>
+      <name>Spring Release Repository</name>
+      <url>https://repo.spring.io/libs-release-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>repo.spring.io</id>
+      <name>Spring Snapshot Repository</name>
+      <url>https://repo.spring.io/libs-snapshot-local</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <profiles>
     <profile>
       <id>run-its</id>
@@ -192,6 +206,16 @@
 
       </build>
     </profile>
+    <profile>
+      <id>milestone</id>
+      <distributionManagement>
+        <repository>
+          <id>repo.spring.io</id>
+          <name>Spring Milestone Repository</name>
+          <url>https://repo.spring.io/libs-milestone-local</url>
+        </repository>
+      </distributionManagement>
+    </profile>
   </profiles>
 
   <repositories>
@@ -220,4 +244,5 @@
       <url>http://repo.spring.io/release</url>
     </repository>
   </repositories>
+
 </project>
