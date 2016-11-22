@@ -313,7 +313,46 @@ public class MavenModelUtils {
         profile.setDistributionManagement(milestoneDistManagement);
         List<Profile> profiles = new ArrayList<>();
         profiles.add(profile);
+
+        profiles.add(centralProfile());
+
         pomModel.setProfiles(profiles);
+    }
+
+    private static Profile centralProfile() {
+        Profile centralProfile = new Profile();
+        centralProfile.setId("central");
+        DistributionManagement centralDistManagement = new DistributionManagement();
+
+        DeploymentRepository snapshotRepo = new DeploymentRepository();
+        snapshotRepo.setId("sonatype-nexus-snapshots");
+        snapshotRepo.setName("Sonatype Nexus Snapshots");
+        snapshotRepo.setUrl("https://oss.sonatype.org/content/repositories/snapshots/");
+        centralDistManagement.setSnapshotRepository(snapshotRepo);
+
+        DeploymentRepository repo = new DeploymentRepository();
+        repo.setId("sonatype-nexus-staging");
+        repo.setName("Nexus Release Repository");
+        repo.setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/");
+        centralDistManagement.setRepository(repo);
+
+        Plugin gpgPlugin = new Plugin();
+        gpgPlugin.setGroupId("org.apache.maven.plugins");
+        gpgPlugin.setArtifactId("maven-gpg-plugin");
+
+        PluginExecution pluginExecution = new PluginExecution();
+        pluginExecution.setId("sign-artifacts");
+        pluginExecution.setPhase("verify");
+        List<String> goals = new ArrayList<>();
+        goals.add("sign");
+        pluginExecution.setGoals(goals);
+        gpgPlugin.getExecutions().add(pluginExecution);
+        Build build = new Build();
+        build.addPlugin(gpgPlugin);
+        centralProfile.setBuild(build);
+
+        centralProfile.setDistributionManagement(centralDistManagement);
+        return centralProfile;
     }
 
     private static Plugin getSurefirePlugin() {
