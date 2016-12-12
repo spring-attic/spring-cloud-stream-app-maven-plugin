@@ -58,6 +58,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
             if (!CollectionUtils.isEmpty(additionalBoms)) {
                 MavenModelUtils.addAdditionalBoms(pomModel, additionalBoms);
             }
+            MavenModelUtils.addExclusionsForKafka(pomModel);
             MavenModelUtils.addDistributionManagement(pomModel);
             MavenModelUtils.addProfiles(pomModel);
             MavenModelUtils.writeModelToFile(pomModel, os1);

@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
@@ -15,6 +16,7 @@ import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.DeploymentRepository;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.DistributionManagement;
+import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
@@ -264,6 +266,22 @@ public class MavenModelUtils {
         }
 
         pomModel.setDependencyManagement(dependencyManagement);
+    }
+
+    public static void addExclusionsForKafka(Model pomModel) throws IOException {
+
+        List<Dependency> dependencies = pomModel.getDependencies();
+        CopyOnWriteArrayList<Dependency> cowal = new CopyOnWriteArrayList<>(dependencies);
+        for (Dependency dep : cowal) {
+            if (dep.getArtifactId().startsWith("kafka_")) {
+                pomModel.removeDependency(dep);
+                Exclusion exclusion = new Exclusion();
+                exclusion.setArtifactId("slf4j-log4j12");
+                exclusion.setGroupId("org.slf4j");
+                dep.addExclusion(exclusion);
+                pomModel.addDependency(dep);
+            }
+        }
     }
 
     public static void addAdditionalBoms(Model pomModel, List<Bom> additionalBoms) throws IOException {

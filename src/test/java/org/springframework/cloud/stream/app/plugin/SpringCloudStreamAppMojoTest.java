@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.stream.app.plugin;
 
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,6 +40,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.util.ReflectionUtils;
+
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Soby Chacko
@@ -72,7 +72,7 @@ public class SpringCloudStreamAppMojoTest {
         Field binders = mojoClazz.getDeclaredField("binders");
         binders.setAccessible(true);
         Map<String, String> binders1 = new HashMap<>();
-        binders1.put("kafka", "");
+        binders1.put("kafka", null);
         ReflectionUtils.setField(binders, springCloudStreamAppMojo, binders1);
 
         Field generatedApps = mojoClazz.getDeclaredField("generatedApps");

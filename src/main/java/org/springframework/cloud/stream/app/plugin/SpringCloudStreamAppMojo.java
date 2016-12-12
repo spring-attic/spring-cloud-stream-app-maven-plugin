@@ -89,7 +89,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	List<Dependency> additionalGlobalDependencies = new ArrayList<>();
 
 	@Parameter
-	private Map<String, String> binders = new HashMap<>();
+	private Map<String, BinderMetadata> binders = new HashMap<>();
 
 	@Parameter
 	private String bomsWithHigherPrecedence;
@@ -181,6 +181,25 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			artifactIds.add(dependency.getArtifactId());
 		}
 
+		BinderMetadata binderMetadata = binders.get(appType);
+		if (binderMetadata != null && !binderMetadata.getForceDependencies().isEmpty()) {
+			for (Dependency forceDep : binderMetadata.getForceDependencies()) {
+				Dependency dependency = new Dependency();
+				dependency.setId(forceDep.getArtifactId());
+				dependency.setGroupId(forceDep.getGroupId());
+				dependency.setArtifactId(forceDep.getArtifactId());
+				if (StringUtils.isNotEmpty(forceDep.getVersion())) {
+					dependency.setVersion(forceDep.getVersion());
+				}
+				else {
+					dependency.setBom(bom.getName());
+				}
+				deps.add(dependency);
+
+				artifactIds.add(dependency.getArtifactId());
+			}
+		}
+
 		Dependency[] depArray = deps.toArray(new Dependency[deps.size()]);
 		String[] artifactNames = artifactIds.toArray(new String[artifactIds.size()]);
 		List<Repository> extraReposToAdd = new ArrayList<>();
@@ -241,7 +260,13 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 				String applicationName = orderedStarterArtifactTokens.stream().collect(Collectors.joining("-"));
 
 				final File applicationProperties = new File(generatedAppHome, "src/main/resources/application.properties");
-				Files.write(applicationProperties.toPath(), ("spring.application.name=" + applicationName + "\n").getBytes());
+
+				String applicationPropertiesContents = "spring.application.name=" + applicationName + "\n" +
+						"info.app.name=" + "@project.artifactId@" + "\n" +
+						"info.app.description=" + "@project.description@" + "\n" +
+						"info.app.version=" + "@project.version@" + "\n";
+
+				Files.write(applicationProperties.toPath(), applicationPropertiesContents.getBytes());
 			}
 			catch (IOException e) {
 				throw new IllegalStateException(e);
@@ -322,6 +347,15 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 						.limit(StringUtils.countMatches(artifactId, "-"))
 						.toArray(String[]::new);
 
+		//handle possible numeric versions at the end of the package name
+		if (StringUtils.isNumeric(strings[strings.length - 1])) {
+			Object[] versionDropped = Stream.of(strings).limit(strings.length - 1)
+					.toArray();
+			String join = StringUtils.join(versionDropped, ".");
+			return String.format("%s.%s", getApplicationGroupId(applicationType), join);
+		}
+
+
 		String join = StringUtils.join(strings, ".");
 		return String.format("%s.%s", getApplicationGroupId(applicationType), join);
 	}
@@ -346,6 +380,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	}
 
 	private String constructBinderArtifact(String binder) {
+		if (binder.contains("-")){
+			binder = org.springframework.util.StringUtils.split(binder, "-")[0];
+		}
 		return String.format("%s-%s", "spring-cloud-starter-stream", binder);
 	}
 
