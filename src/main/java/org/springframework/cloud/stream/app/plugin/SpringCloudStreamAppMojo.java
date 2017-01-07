@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,6 +44,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -60,6 +63,9 @@ import static java.util.stream.Collectors.toList;
 public class SpringCloudStreamAppMojo extends AbstractMojo {
 
 	private static final String SPRING_CLOUD_STREAM_BINDER_GROUP_ID = "org.springframework.cloud";
+
+	@Parameter(defaultValue="${project}", readonly=true, required=true)
+	private MavenProject project;
 
 	@Parameter
 	private Map<String, GeneratableApp> generatedApps;
@@ -104,6 +110,23 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		projectGenerator.setDockerHubOrg("springcloud" + applicationType);
 		projectGenerator.setBomsWithHigherPrecedence(bomsWithHigherPrecedence);
 		projectGenerator.setAdditionalBoms(additionalBoms);
+		if (project != null) {
+			@SuppressWarnings("unchecked")
+			List<MavenProject> collectedProjects = project.getParent().getCollectedProjects();
+
+			Optional<MavenProject> dependencies = collectedProjects.stream()
+					.filter(e -> e.getArtifactId().endsWith("dependencies")).findFirst();
+			MavenProject mavenProject = dependencies.get();
+			Properties  properties = new Properties();
+
+			for (Object obj : mavenProject.getProperties().keySet()) {
+				if (!mavenProject.getParent().getProperties().containsKey(obj)){
+					properties.put(obj, mavenProject.getProperties().get(obj));
+				}
+			}
+
+			projectGenerator.setProperties(properties);
+		}
 
 		final InitializrDelegate initializrDelegate = new InitializrDelegate();
 

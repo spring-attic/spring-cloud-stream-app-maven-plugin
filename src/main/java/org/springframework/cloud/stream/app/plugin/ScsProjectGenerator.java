@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import io.spring.initializr.generator.ProjectGenerator;
 import io.spring.initializr.generator.ProjectRequest;
@@ -28,6 +30,8 @@ public class ScsProjectGenerator extends ProjectGenerator {
     private String bomsWithHigherPrecedence;
 
     private List<Bom> additionalBoms;
+
+    private Properties properties;
 
     @Override
     protected File doGenerateProjectStructure(ProjectRequest request) {
@@ -61,6 +65,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
             MavenModelUtils.addExclusionsForKafka(pomModel);
             MavenModelUtils.addDistributionManagement(pomModel);
             MavenModelUtils.addProfiles(pomModel);
+            MavenModelUtils.addProperties(pomModel, properties);
             MavenModelUtils.writeModelToFile(pomModel, os1);
 
             is.close();
@@ -90,5 +95,9 @@ public class ScsProjectGenerator extends ProjectGenerator {
 
     public void setAdditionalBoms(List<Bom> additionalBoms) {
         this.additionalBoms = additionalBoms;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
     }
 }

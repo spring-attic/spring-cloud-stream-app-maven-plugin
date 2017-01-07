@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.maven.model.Build;
@@ -294,10 +296,19 @@ public class MavenModelUtils {
             dependency.setVersion(bom.getVersion());
             dependency.setType("pom");
             dependency.setScope("import");
-            dependencyManagement.getDependencies().add(i++, dependency);
+            dependencyManagement.getDependencies().add(++i, dependency);
         }
 
         pomModel.setDependencyManagement(dependencyManagement);
+    }
+
+    public static void addProperties(Model pomModel, Properties properties) {
+        Properties pomProperties = pomModel.getProperties();
+        if (properties != null) {
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                pomProperties.put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     public static void addDistributionManagement(Model pomModel) {
@@ -440,5 +451,6 @@ public class MavenModelUtils {
         parentElement.addChild(child);
         return child;
     }
+
 }
 
