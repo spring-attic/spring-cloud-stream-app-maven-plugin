@@ -283,7 +283,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 
 				final File applicationProperties = new File(generatedAppHome, "src/main/resources/application.properties");
 
-				String applicationPropertiesContents = "spring.application.name=" + applicationName + "\n" +
+				String applicationPropertiesContents = "management.context-path=" + "/management\n" +
+						"security.basic.path=" + "/management/**\n" +
+						"spring.application.name=" + applicationName + "\n" +
 						"info.app.name=" + "@project.artifactId@" + "\n" +
 						"info.app.description=" + "@project.description@" + "\n" +
 						"info.app.version=" + "@project.version@" + "\n";
