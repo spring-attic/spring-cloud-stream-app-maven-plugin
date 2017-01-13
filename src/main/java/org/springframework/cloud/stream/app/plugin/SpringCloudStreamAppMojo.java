@@ -119,11 +119,10 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 			MavenProject mavenProject = dependencies.get();
 			Properties  properties = new Properties();
 
-			for (Object obj : mavenProject.getProperties().keySet()) {
-				if (!mavenProject.getParent().getProperties().containsKey(obj)){
-					properties.put(obj, mavenProject.getProperties().get(obj));
-				}
-			}
+			mavenProject.getProperties().keySet()
+					.stream()
+					.filter(p -> !mavenProject.getParent().getProperties().containsKey(p))
+					.forEach(p -> properties.put(p, mavenProject.getProperties().get(p)));
 
 			projectGenerator.setProperties(properties);
 		}
