@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import io.spring.initializr.generator.ProjectGenerator;
 import io.spring.initializr.generator.ProjectRequest;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
 
 import org.springframework.cloud.stream.app.plugin.utils.MavenModelUtils;
 import org.springframework.util.CollectionUtils;
@@ -32,6 +32,8 @@ public class ScsProjectGenerator extends ProjectGenerator {
     private List<Bom> additionalBoms;
 
     private Properties properties;
+
+    private List<Plugin> additionalPlugins;
 
     @Override
     protected File doGenerateProjectStructure(ProjectRequest request) {
@@ -57,6 +59,9 @@ public class ScsProjectGenerator extends ProjectGenerator {
             FileOutputStream os1 = new FileOutputStream(tempOutputFile2);
 
             Model pomModel = MavenModelUtils.getModel(is1);
+            for (Plugin plugin : additionalPlugins) {
+                pomModel.getBuild().addPlugin(plugin);
+            }
             MavenModelUtils.addExtraPlugins(pomModel);
             MavenModelUtils.addBomsWithHigherPrecedence(pomModel, bomsWithHigherPrecedence);
             if (!CollectionUtils.isEmpty(additionalBoms)) {
@@ -99,5 +104,9 @@ public class ScsProjectGenerator extends ProjectGenerator {
 
     public void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    public void setAdditionalPlugins(List<Plugin> additionalPlugins) {
+        this.additionalPlugins = additionalPlugins;
     }
 }

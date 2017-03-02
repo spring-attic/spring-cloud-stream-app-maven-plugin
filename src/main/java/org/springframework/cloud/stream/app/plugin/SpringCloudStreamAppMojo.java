@@ -39,6 +39,7 @@ import io.spring.initializr.metadata.Dependency;
 import io.spring.initializr.metadata.InitializrMetadata;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -103,6 +104,9 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 	@Parameter
 	private List<Bom> additionalBoms;
 
+	@Parameter
+	List<Plugin> additionalPlugins = new ArrayList<>();
+
 	private ScsProjectGenerator projectGenerator = new ScsProjectGenerator();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
@@ -110,6 +114,7 @@ public class SpringCloudStreamAppMojo extends AbstractMojo {
 		projectGenerator.setDockerHubOrg("springcloud" + applicationType);
 		projectGenerator.setBomsWithHigherPrecedence(bomsWithHigherPrecedence);
 		projectGenerator.setAdditionalBoms(additionalBoms);
+		projectGenerator.setAdditionalPlugins(additionalPlugins);
 		if (project != null) {
 			@SuppressWarnings("unchecked")
 			List<MavenProject> collectedProjects = project.getParent().getCollectedProjects();
