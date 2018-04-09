@@ -37,7 +37,10 @@ public class ScsProjectGenerator extends ProjectGenerator {
 
     @Override
     protected File doGenerateProjectStructure(ProjectRequest request) {
+        return doGenerateProjectStructure(request, MavenModelUtils.ENTRYPOINT_TYPE_EXEC);
+    }
 
+    protected File doGenerateProjectStructure(ProjectRequest request, String entrypointType) {
         final File rootDir = super.doGenerateProjectStructure(request);
 
         final File dir = new File(rootDir, request.getBaseDir());
@@ -53,7 +56,7 @@ public class ScsProjectGenerator extends ProjectGenerator {
         try {
             final InputStream is = new FileInputStream(inputFile);
             final OutputStream os = new FileOutputStream(tempOutputFile1);
-            MavenModelUtils.addDockerPlugin(request.getArtifactId(), request.getVersion(), dockerHubOrg, is, os);
+            MavenModelUtils.addDockerPlugin(request.getArtifactId(), request.getVersion(), dockerHubOrg, is, os, entrypointType);
 
             FileInputStream is1 = new FileInputStream(tempOutputFile1);
             FileOutputStream os1 = new FileOutputStream(tempOutputFile2);
@@ -87,7 +90,6 @@ public class ScsProjectGenerator extends ProjectGenerator {
         tempOutputFile2.delete();
 
         return rootDir;
-
     }
 
     public void setDockerHubOrg(String dockerHubOrg) {

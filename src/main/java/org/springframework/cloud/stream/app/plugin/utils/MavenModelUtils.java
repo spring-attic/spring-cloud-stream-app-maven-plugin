@@ -38,6 +38,8 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  */
 public class MavenModelUtils {
+    public static final String ENTRYPOINT_TYPE_SHELL = "shell";
+    public static final String ENTRYPOINT_TYPE_EXEC = "exec";
 
     private MavenModelUtils() {
 
@@ -181,7 +183,7 @@ public class MavenModelUtils {
         }
     }
 
-    public static void addDockerPlugin(String artifactId, String version, String dockerHubOrg, InputStream is, OutputStream os) throws IOException {
+    public static void addDockerPlugin(String artifactId, String version, String dockerHubOrg, InputStream is, OutputStream os, String entrypointStyle) throws IOException {
         final MavenXpp3Reader reader = new MavenXpp3Reader();
 
         Model pomModel;
@@ -218,12 +220,18 @@ public class MavenModelUtils {
         final Xpp3Dom entryPoint = new Xpp3Dom("entryPoint");
         build.addChild(entryPoint);
 
-        final Xpp3Dom exec = new Xpp3Dom("exec");
-        entryPoint.addChild(exec);
+        if (ENTRYPOINT_TYPE_SHELL.equalsIgnoreCase(entrypointStyle)) {
+            final Xpp3Dom shell = new Xpp3Dom(ENTRYPOINT_TYPE_SHELL);
+            shell.setValue("java $JAVA_OPTS -jar /maven/" + artifactId + ".jar ${*}");
+            entryPoint.addChild(shell);
+        } else {
+            final Xpp3Dom exec = new Xpp3Dom(ENTRYPOINT_TYPE_EXEC);
+            entryPoint.addChild(exec);
 
-        addElement(exec, "arg", "java");
-        addElement(exec, "arg", "-jar");
-        addElement(exec, "arg", "/maven/" + artifactId + ".jar");
+            addElement(exec, "arg", "java");
+            addElement(exec, "arg", "-jar");
+            addElement(exec, "arg", "/maven/" + artifactId + ".jar");
+        }
 
         final Xpp3Dom assembly = addElement(build, "assembly");
         addElement(assembly, "descriptor", "assembly.xml");
