@@ -1,3 +1,7 @@
+= Annoucement
+
+This repo has been decommissioned. Please switch over to link:https://github.com/spring-cloud/spring-cloud-app-starters-maven-plugins[spring-cloud/spring-cloud-app-starters-maven-plugins] instead.
+
 = spring-cloud-stream-app-maven-plugin
 Maven plugin for generating spring cloud stream applications from the spring-cloud-stream-app-starters repository
 
