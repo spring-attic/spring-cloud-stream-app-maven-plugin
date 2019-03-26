@@ -65,7 +65,7 @@ public class MavenModelUtils {
             model.setVersion(version);
             model.setName("Apps Container");
             model.setDescription("Container project for generated apps");
-            model.setUrl("http://spring.io/spring-cloud");
+            model.setUrl("https://spring.io/spring-cloud");
             License license = new License();
             license.setName("Apache License, Version 2.0");
             license.setUrl("http://www.apache.org/licenses/LICENSE-2.0");
@@ -98,7 +98,7 @@ public class MavenModelUtils {
             developer.setName("Soby Chacko");
             developer.setEmail("schacko at pivotal.io");
             developer.setOrganization("Pivotal Software, Inc.");
-            developer.setOrganizationUrl("http://www.spring.io");
+            developer.setOrganizationUrl("https://www.spring.io");
             List<String> roles = new ArrayList<>();
             roles.add("developer");
             developer.setRoles(roles);
