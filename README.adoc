@@ -1,3 +1,5 @@
+# spring-cloud-stream-app-maven-plugin is no longer actively maintained by VMware, Inc.
+
 = Annoucement
 
 This repo has been decommissioned. Please switch over to link:https://github.com/spring-cloud/spring-cloud-app-starters-maven-plugins[spring-cloud/spring-cloud-app-starters-maven-plugins] instead.
